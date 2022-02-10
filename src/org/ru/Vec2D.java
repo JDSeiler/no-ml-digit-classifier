@@ -35,4 +35,34 @@ public class Vec2D implements FixedVector {
         }
         v = newValues;
     }
+
+    @Override
+    public void scale(double scalar) {
+        this.v = Arrays.stream(this.v).map((double vi) -> vi*scalar).toArray();
+    }
+
+    @Override
+    public void add(FixedVector other) {
+        if (other.size() != this.size()){
+            throw new AssertionError(String.format("Vectors must match in size!%n This vector: %d %n Other vector %d %n", this.size(), other.size()));
+        }
+
+        double[] u = other.components();
+        for (int i = 0; i < this.v.length; i++) {
+            this.v[i] += u[i];
+        }
+    }
+
+    @Override
+    public void subtract(FixedVector other) {
+        if (other.size() != this.size()){
+            throw new AssertionError(String.format("Vectors must match in size!%n This vector: %d %n Other vector %d %n", this.size(), other.size()));
+        }
+
+        double[] u = other.components();
+        for (int i = 0; i < this.v.length; i++) {
+            this.v[i] -= u[i];
+        }
+    }
+
 }

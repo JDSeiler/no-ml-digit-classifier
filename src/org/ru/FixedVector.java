@@ -16,4 +16,8 @@ public interface FixedVector {
      * @precondition the length of `newValues` **must** be equal to the return value of `size()`
      */
     void set(double[] newValues);
+
+     void scale(double scalar);
+     void add(FixedVector other);
+     void subtract(FixedVector other);
 }
