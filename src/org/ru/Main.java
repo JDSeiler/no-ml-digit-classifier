@@ -1,3 +1,5 @@
+package org.ru;
+
 public class Main {
     /**
      * Implementation plan:
