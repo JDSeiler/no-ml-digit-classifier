@@ -1,5 +1,8 @@
 package org.ru;
 
+import org.ru.strategies.Placement;
+import org.ru.strategies.Topology;
+
 public class Main {
     /**
      * Implementation plan:
@@ -12,6 +15,16 @@ public class Main {
      * */
     public static void main(String[] args) {
         System.out.println("Hello world!");
-        PSO<Vec2D> pso = new PSO<>(10, ObjectiveFunctions::wavyParabola);
+        PSOConfig<Vec2D> config = new PSOConfig<>(
+                10,
+                0.9,
+                1.1,
+                1.2,
+                Topology.COMPLETE,
+                Placement.RANDOM,
+                3.5,
+                new Vec2D(new double[]{10.0, 10.0})
+        );
+        PSO<Vec2D> pso = new PSO<>(config, ObjectiveFunctions::wavyParabola, Vec2D::new);
     }
 }

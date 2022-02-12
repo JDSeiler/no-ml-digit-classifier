@@ -17,7 +17,9 @@ public interface FixedVector {
      */
     void set(double[] newValues);
 
-     void scale(double scalar);
-     void add(FixedVector other);
-     void subtract(FixedVector other);
+    void scale(double scalar);
+
+    void add(FixedVector other);
+
+    void subtract(FixedVector other);
 }

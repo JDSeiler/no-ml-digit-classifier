@@ -1,9 +1,9 @@
 package org.ru.strategies;
 
 public enum Topology {
-    RING,
+//    RING,
     COMPLETE,
-    RANDOM
+//    RANDOM
 }
 
 /*
