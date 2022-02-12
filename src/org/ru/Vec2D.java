@@ -65,4 +65,8 @@ public class Vec2D implements FixedVector {
         }
     }
 
+    @Override
+    public String toString() {
+        return Arrays.toString(this.v);
+    }
 }

@@ -31,10 +31,33 @@ public class PSO<V extends FixedVector> {
         }
     }
 
+    public void printSwarm() {
+        for (Particle<V> p : this.swarm) {
+            System.out.println(p.toString());
+        }
+    }
+
+    public void run() {
+        // What I've been able to find suggests stopping conditions:
+        // 1) A "sufficiently high fitness" (I don't know how to define this)
+        // 2) A fixed number of iterations (good enough for now)
+        double bestSoFar = Double.MAX_VALUE;
+        for (int i = 0; i < 10_000; i++) {
+            /*
+            * What I'll try, could have issues with off-by-one or other mistakes
+            * but I have books/papers to refer to if it goes really poorly.
+            * 1. Move each particle (I guess it's ok to move first?)
+            * 2. Calculate the cost function for each particle
+            * 3. Update personal bests and global best
+            * 4. Calculate new velocities of each particle
+            * */
+        }
+    }
+
     private void randomlyInitializeSwarm() {
-        // `initializationRegionMaximums` is one corner of an N-dimensional cube.
-        // This corner must have strictly positive values. From this we can easily
-        // infer min/max values for the initialization region.
+        // `initializationRegionMaximums` is one corner of an N-dimensional box.
+        // This corner must have strictly positive values. We then assume the
+        // other corner of the box is located at this corner * -1 (mirror it through the origin)
         double[] bounds = config.initializationRegionMaximums().components();
 
         // For each particle...

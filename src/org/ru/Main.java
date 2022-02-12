@@ -16,15 +16,16 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello world!");
         PSOConfig<Vec2D> config = new PSOConfig<>(
-                10,
-                0.9,
-                1.1,
-                1.2,
+                20,
+                0.7,
+                1.3,
+                1.5,
                 Topology.COMPLETE,
                 Placement.RANDOM,
-                3.5,
+                5.0,
                 new Vec2D(new double[]{10.0, 10.0})
         );
         PSO<Vec2D> pso = new PSO<>(config, ObjectiveFunctions::wavyParabola, Vec2D::new);
+        pso.printSwarm();
     }
 }

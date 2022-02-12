@@ -12,5 +12,6 @@ public record PSOConfig<V extends FixedVector>(
         Placement placementStrategy,
         double initialVelocityBound,
         V initializationRegionMaximums // Take the negative of each v[i] for the other bound
+        // TODO: Consider adding a "maximumVelocity" parameter to prevent explosions
     ) {
 }
