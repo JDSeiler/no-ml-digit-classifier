@@ -1,6 +1,7 @@
 package org.ru;
 
 import org.ru.strategies.Placement;
+import org.ru.strategies.Topology;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,11 @@ public class PSO<V extends FixedVector> {
             System.out.println("RANDOM is the only supported placement strategy");
             System.exit(1);
         }
+
+        if (this.config.neighborhoodTopology() != Topology.COMPLETE) {
+            System.out.println("COMPLETE is the only supported neighborhood topology");
+            System.exit(1);
+        }
     }
 
     public void printSwarm() {
@@ -37,12 +43,16 @@ public class PSO<V extends FixedVector> {
         }
     }
 
-    public void run() {
-        // What I've been able to find suggests stopping conditions:
-        // 1) A "sufficiently high fitness" (I don't know how to define this)
-        // 2) A fixed number of iterations (good enough for now)
+    public Solution<V> run() {
         double bestSoFar = Double.MAX_VALUE;
+        V locationOfGlobalBest = null;
+
         for (int i = 0; i < 10_000; i++) {
+            if (Math.abs(bestSoFar) <= 0.0000000001) {
+                System.out.printf("Found minimum in %d iterations.%n", i);
+                return new Solution<>(bestSoFar, locationOfGlobalBest);
+            }
+
             /*
             * What I'll try, could have issues with off-by-one or other mistakes
             * but I have books/papers to refer to if it goes really poorly.
@@ -51,7 +61,31 @@ public class PSO<V extends FixedVector> {
             * 3. Update personal bests and global best
             * 4. Calculate new velocities of each particle
             * */
+            for(Particle<V> p : this.swarm) {
+                p.move();
+                double particleFitness = cost.apply(p.getPos());
+
+                if (particleFitness < bestSoFar) {
+                    bestSoFar = particleFitness;
+                    System.out.printf("New best fitness: %.10f!%n", bestSoFar);
+                    locationOfGlobalBest = p.getPos();
+                }
+
+                if (particleFitness < p.getPersonalBestFitness()) {
+                    p.setPersonalBest(particleFitness);
+                }
+            }
+            for(Particle<V> p : this.swarm) {
+                assert locationOfGlobalBest != null : "Global best should not be null after first iteration!";
+                p.update(
+                        locationOfGlobalBest,
+                        config.inertiaScalar(),
+                        config.personalBestScalar(),
+                        config.neighborHoodBestScalar()
+                );
+            }
         }
+        return new Solution<>(bestSoFar, locationOfGlobalBest);
     }
 
     private void randomlyInitializeSwarm() {

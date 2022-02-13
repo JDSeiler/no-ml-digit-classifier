@@ -5,9 +5,9 @@ public class ObjectiveFunctions {
         double x = v.components()[0];
         double y = v.components()[1];
 
-        double xTerm = Math.pow((x+1.1d*Math.sin(x)), 2);
-        double yTerm = Math.pow((y+1.1d*Math.cos(y)), 2);
+        double xTerm = Math.pow((2d*x + 5d*Math.sin(x)), 2);
+        double yTerm = Math.pow((2d*y + 5d*Math.sin(y)), 2);
 
-        return (xTerm + yTerm) / 10.0d;
+        return (xTerm + yTerm) / 40.0d;
     }
 }

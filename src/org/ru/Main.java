@@ -16,16 +16,21 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello world!");
         PSOConfig<Vec2D> config = new PSOConfig<>(
-                20,
-                0.7,
+                15,
+                0.75,
                 1.3,
                 1.5,
                 Topology.COMPLETE,
                 Placement.RANDOM,
-                5.0,
-                new Vec2D(new double[]{10.0, 10.0})
+                15.0,
+                new Vec2D(new double[]{100.0, 100.0})
         );
         PSO<Vec2D> pso = new PSO<>(config, ObjectiveFunctions::wavyParabola, Vec2D::new);
+        System.out.println("Before:");
         pso.printSwarm();
+        Solution<Vec2D> foundMinimum = pso.run();
+        System.out.println("After:");
+        pso.printSwarm();
+        System.out.printf("Best solution at end: %s%n", foundMinimum);
     }
 }

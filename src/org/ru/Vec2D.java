@@ -37,32 +37,49 @@ public class Vec2D implements FixedVector {
     }
 
     @Override
-    public void scale(double scalar) {
-        this.v = Arrays.stream(this.v).map((double vi) -> vi*scalar).toArray();
+    public Vec2D scale(double scalar) {
+        double[] newVec = Arrays.stream(this.v).map((double vi) -> vi*scalar).toArray();
+        return new Vec2D(newVec);
     }
 
     @Override
-    public void add(FixedVector other) {
+    public Vec2D add(FixedVector other) {
+        if (other.size() != this.size()){
+            throw new AssertionError(String.format("Vectors must match in size!%n This vector: %d %n Other vector %d %n", this.size(), other.size()));
+        }
+
+        // components returns a COPY not a reference, so minimize allocations...
+        double[] u = other.components();
+        double[] newVec = new double[this.size()];
+        for (int i = 0; i < this.v.length; i++) {
+            newVec[i] = this.v[i] + u[i];
+        }
+
+        return new Vec2D(newVec);
+    }
+
+    @Override
+    public Vec2D subtract(FixedVector other) {
         if (other.size() != this.size()){
             throw new AssertionError(String.format("Vectors must match in size!%n This vector: %d %n Other vector %d %n", this.size(), other.size()));
         }
 
         double[] u = other.components();
+        double[] newVec = new double[this.size()];
         for (int i = 0; i < this.v.length; i++) {
-            this.v[i] += u[i];
+            newVec[i] = this.v[i] - u[i];
         }
+
+        return new Vec2D(newVec);
     }
 
     @Override
-    public void subtract(FixedVector other) {
-        if (other.size() != this.size()){
-            throw new AssertionError(String.format("Vectors must match in size!%n This vector: %d %n Other vector %d %n", this.size(), other.size()));
+    public Vec2D jitter() {
+        double[] jitteredValues = new double[this.size()];
+        for (int i = 0; i < jitteredValues.length; i++) {
+            jitteredValues[i] = this.v[i] * Math.random();
         }
-
-        double[] u = other.components();
-        for (int i = 0; i < this.v.length; i++) {
-            this.v[i] -= u[i];
-        }
+        return new Vec2D(jitteredValues);
     }
 
     @Override
