@@ -40,5 +40,6 @@ public class ImgReader {
     public BufferedImage getImage(String location) {
         Path imgLocation = this.BASE_IMAGE_DIRECTORY.resolve(location);
         // TODO
+        return null;
     }
 }
