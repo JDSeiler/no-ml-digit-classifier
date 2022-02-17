@@ -1,8 +1,8 @@
-package org.ru;
+package org.ru.vec;
 
 public interface FixedVector {
     /**
-     * @return the number of elements in the org.ru.FixedVector
+     * @return the number of elements in the org.ru.vec.FixedVector
      */
     int size();
 
@@ -12,7 +12,7 @@ public interface FixedVector {
     double[] components();
 
     /**
-     * @param newValues the new values to give to this org.ru.FixedVector
+     * @param newValues the new values to give to this org.ru.vec.FixedVector
      * @precondition the length of `newValues` **must** be equal to the return value of `size()`
      */
     void set(double[] newValues);

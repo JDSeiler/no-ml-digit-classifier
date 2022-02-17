@@ -1,7 +1,8 @@
-package org.ru;
+package org.ru.pso;
 
-import org.ru.strategies.Placement;
-import org.ru.strategies.Topology;
+import org.ru.pso.strategies.Placement;
+import org.ru.pso.strategies.Topology;
+import org.ru.vec.FixedVector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ public class PSO<V extends FixedVector> {
     // is implemented with type erasure.
     private final Supplier<V> vectorFactory;
 
-    PSO(PSOConfig<V> config, Function<V, Double> objectiveFunction, Supplier<V> vectorFactory) {
+    public PSO(PSOConfig<V> config, Function<V, Double> objectiveFunction, Supplier<V> vectorFactory) {
         this.swarm = new ArrayList<>(config.swarmSize());
         this.config = config;
         this.cost = objectiveFunction;

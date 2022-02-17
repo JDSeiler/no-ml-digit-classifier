@@ -1,4 +1,6 @@
-package org.ru;
+package org.ru.pso;
+
+import org.ru.vec.FixedVector;
 
 public class Particle<V extends FixedVector> {
     private V pos;

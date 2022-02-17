@@ -3,7 +3,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-import org.ru.Vec2D;
+import org.ru.vec.Vec2D;
 
 public class Vec2DTest {
     public static final double DELTA = 0.0000001d;

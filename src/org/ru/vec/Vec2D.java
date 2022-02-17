@@ -1,4 +1,4 @@
-package org.ru;
+package org.ru.vec;
 
 import java.util.Arrays;
 
@@ -13,7 +13,7 @@ public class Vec2D implements FixedVector {
 
     public Vec2D(double[] initialValues) {
         if (initialValues.length != 2) {
-            throw new AssertionError(String.format("org.ru.Vec2D expects 2 elements, got %d", initialValues.length));
+            throw new AssertionError(String.format("org.ru.vec.Vec2D expects 2 elements, got %d", initialValues.length));
         }
         v = initialValues;
     }
@@ -31,7 +31,7 @@ public class Vec2D implements FixedVector {
     @Override
     public void set(double[] newValues) {
         if (newValues.length != 2) {
-            throw new AssertionError(String.format("org.ru.Vec2D expects 2 elements, got %d", newValues.length));
+            throw new AssertionError(String.format("org.ru.vec.Vec2D expects 2 elements, got %d", newValues.length));
         }
         v = newValues;
     }

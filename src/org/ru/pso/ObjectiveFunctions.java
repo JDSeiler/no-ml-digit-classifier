@@ -1,4 +1,6 @@
-package org.ru;
+package org.ru.pso;
+
+import org.ru.vec.Vec2D;
 
 public class ObjectiveFunctions {
     public static double wavyParabola(Vec2D v) {

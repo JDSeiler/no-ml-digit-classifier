@@ -1,7 +1,8 @@
-package org.ru;
+package org.ru.pso;
 
-import org.ru.strategies.Placement;
-import org.ru.strategies.Topology;
+import org.ru.pso.strategies.Placement;
+import org.ru.pso.strategies.Topology;
+import org.ru.vec.FixedVector;
 
 public record PSOConfig<V extends FixedVector>(
         int swarmSize,

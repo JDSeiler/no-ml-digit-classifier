@@ -1,7 +1,12 @@
 package org.ru;
 
-import org.ru.strategies.Placement;
-import org.ru.strategies.Topology;
+import org.ru.pso.ObjectiveFunctions;
+import org.ru.pso.PSO;
+import org.ru.pso.PSOConfig;
+import org.ru.pso.Solution;
+import org.ru.pso.strategies.Placement;
+import org.ru.pso.strategies.Topology;
+import org.ru.vec.Vec2D;
 
 public class Main {
     /**
