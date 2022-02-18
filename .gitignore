@@ -4,3 +4,9 @@
 /.idea/shelf
 /out
 *.iml
+
+*.bmp
+*.gif
+*.jpg
+*.jpeg
+*.png
