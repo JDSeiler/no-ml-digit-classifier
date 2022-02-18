@@ -21,18 +21,18 @@ public class Main {
 
     public static void testImages() {
         ImgReader reader = new ImgReader("img");
-        BufferedImage bmpImg = reader.getImage("tiny-cross.bmp");
+        BufferedImage bmpImg = reader.getImage("orientation-check.bmp");
         System.out.println("BMP Image");
         System.out.printf("Size is %d by %d%n", bmpImg.getWidth(), bmpImg.getHeight());
-//        int[][][] pixels = ImgReader.convertToPixelGrid(bmpImg, 3);
-//        for (int[][] row : pixels) {
-//            for (int[] pixel : row) {
-//                System.out.print(Arrays.toString(pixel));
-//            }
-//            System.out.println();
-//        }
-        List<AbstractPixel> pixels = ImgReader.convertToAbstractPixels(bmpImg, 1.0);
-        System.out.println(pixels);
+        int[][][] pixels = ImgReader.convertToPixelGrid(bmpImg, 3);
+        for (int[][] row : pixels) {
+            for (int[] pixel : row) {
+                System.out.print(Arrays.toString(pixel));
+            }
+            System.out.println();
+        }
+        List<AbstractPixel> apixels = ImgReader.convertToAbstractPixels(bmpImg, 1.0);
+        System.out.println(apixels);
     }
 
     public static void testPso() {
