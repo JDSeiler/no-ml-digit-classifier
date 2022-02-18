@@ -1,5 +1,7 @@
 package org.ru;
 
+import org.ru.img.AbstractPixel;
+import org.ru.img.ImgReader;
 import org.ru.pso.ObjectiveFunctions;
 import org.ru.pso.PSO;
 import org.ru.pso.PSOConfig;
@@ -8,18 +10,32 @@ import org.ru.pso.strategies.Placement;
 import org.ru.pso.strategies.Topology;
 import org.ru.vec.Vec2D;
 
+import java.awt.image.BufferedImage;
+import java.util.Arrays;
+import java.util.List;
+
 public class Main {
-    /**
-     * Implementation plan:
-     * 1. Need a central list of particles
-     * 2. Every particle needs access to the objective function
-     *     a) In the context of image recog., the "objective function" can store the images as static properties.
-     *        The actual function call will still take a vector as an argument.
-     * 3. Need to be able to update each particle. Either the particle updates itself, or a function computes a new particle.
-     * 4. Ideally all of this should be agnostic to the dimension of the feasible region.
-     * */
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        testImages();
+    }
+
+    public static void testImages() {
+        ImgReader reader = new ImgReader("img");
+        BufferedImage bmpImg = reader.getImage("tiny-cross.bmp");
+        System.out.println("BMP Image");
+        System.out.printf("Size is %d by %d%n", bmpImg.getWidth(), bmpImg.getHeight());
+//        int[][][] pixels = ImgReader.convertToPixelGrid(bmpImg, 3);
+//        for (int[][] row : pixels) {
+//            for (int[] pixel : row) {
+//                System.out.print(Arrays.toString(pixel));
+//            }
+//            System.out.println();
+//        }
+        List<AbstractPixel> pixels = ImgReader.convertToAbstractPixels(bmpImg, 1.0);
+        System.out.println(pixels);
+    }
+
+    public static void testPso() {
         PSOConfig<Vec2D> config = new PSOConfig<>(
                 15,
                 0.75,
@@ -37,5 +53,6 @@ public class Main {
         System.out.println("After:");
         pso.printSwarm();
         System.out.printf("Best solution at end: %s%n", foundMinimum);
+
     }
 }
