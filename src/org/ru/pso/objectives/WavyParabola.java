@@ -1,9 +1,9 @@
-package org.ru.pso;
+package org.ru.pso.objectives;
 
 import org.ru.vec.Vec2D;
 
-public class ObjectiveFunctions {
-    public static double wavyParabola(Vec2D v) {
+public class WavyParabola {
+    public static double compute(Vec2D v) {
         double x = v.components()[0];
         double y = v.components()[1];
 

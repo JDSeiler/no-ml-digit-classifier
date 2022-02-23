@@ -2,7 +2,7 @@ package org.ru;
 
 import org.ru.img.AbstractPixel;
 import org.ru.img.ImgReader;
-import org.ru.pso.ObjectiveFunctions;
+import org.ru.pso.objectives.WavyParabola;
 import org.ru.pso.PSO;
 import org.ru.pso.PSOConfig;
 import org.ru.pso.Solution;
@@ -46,7 +46,7 @@ public class Main {
                 15.0,
                 new Vec2D(new double[]{100.0, 100.0})
         );
-        PSO<Vec2D> pso = new PSO<>(config, ObjectiveFunctions::wavyParabola, Vec2D::new);
+        PSO<Vec2D> pso = new PSO<>(config, WavyParabola::compute, Vec2D::new);
         System.out.println("Before:");
         pso.printSwarm();
         Solution<Vec2D> foundMinimum = pso.run();
