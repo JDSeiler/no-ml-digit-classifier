@@ -17,6 +17,13 @@ public class ImgReader {
     private Path BASE_IMAGE_DIRECTORY = Paths.get("").toAbsolutePath();
 
     /**
+     * @return The absolute path to the directory this ImgReader is reading images from.
+     */
+    public Path getBaseImageDirectory() {
+        return BASE_IMAGE_DIRECTORY;
+    }
+
+    /**
      * Creates an ImgReader and sets the location of the directory
      * it will read images from to the current working directory
      * of the program. If the current working directory is `/foo/bar`
