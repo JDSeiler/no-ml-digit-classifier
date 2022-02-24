@@ -34,7 +34,7 @@ public class ImageTranslation {
         double[] supplies = this.getGrayscaleArray(this.refImg);
         double[] demands = this.getGrayscaleArray(adjustedCandidate);
         double[][] costs = this.computeCostMatrix(this.refImg, adjustedCandidate);
-        Mapping mapping = new Mapping(n, supplies, demands, costs, 0.1);
+        Mapping mapping = new Mapping(n, supplies, demands, costs, 0.01);
         return mapping.getTotalCost();
     }
 

@@ -2,6 +2,7 @@ package org.ru;
 
 import org.ru.img.AbstractPixel;
 import org.ru.img.ImgReader;
+import org.ru.pso.objectives.ImageTranslation;
 import org.ru.pso.objectives.WavyParabola;
 import org.ru.pso.PSO;
 import org.ru.pso.PSOConfig;
@@ -16,10 +17,10 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        testImages();
+        testImageTranslation();
     }
 
-    public static void testImages() {
+    public static void testReadingImages() {
         ImgReader reader = new ImgReader("img");
         BufferedImage bmpImg = reader.getImage("orientation-check.bmp");
         System.out.println("BMP Image");
@@ -35,7 +36,32 @@ public class Main {
         System.out.println(apixels);
     }
 
-    public static void testPso() {
+    public static void testImageTranslation() {
+        ImgReader reader = new ImgReader("img");
+        BufferedImage ref = reader.getImage("test_5/reference.bmp");
+        BufferedImage candidate = reader.getImage("test_5/candidate.bmp");
+
+        ImageTranslation objectiveFunction = new ImageTranslation(ref, candidate);
+
+        PSOConfig<Vec2D> config = new PSOConfig<>(
+                15,
+                0.75,
+                1.3,
+                1.5,
+                Topology.COMPLETE,
+                Placement.RANDOM,
+                3.5,
+                new Vec2D(new double[]{10.0, 10.0})
+        );
+
+        PSO<Vec2D> pso = new PSO<>(config, objectiveFunction::compute, Vec2D::new);
+        Solution<Vec2D> foundMinimum = pso.run();
+        System.out.println("Particle Locations:");
+        pso.printSwarm();
+        System.out.printf("Best solution at end: %s%n", foundMinimum);
+    }
+
+    public static void testWavyParabola() {
         PSOConfig<Vec2D> config = new PSOConfig<>(
                 15,
                 0.75,
