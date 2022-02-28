@@ -36,6 +36,8 @@ public class Vec2D implements FixedVector {
         v = newValues;
     }
 
+    // TODO: Add, subtract, and scale, can be implemented once generically. Worth it?
+
     @Override
     public Vec2D scale(double scalar) {
         double[] newVec = Arrays.stream(this.v).map((double vi) -> vi*scalar).toArray();
