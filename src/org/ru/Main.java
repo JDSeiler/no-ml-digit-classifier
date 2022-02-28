@@ -41,7 +41,7 @@ public class Main {
         BufferedImage ref = reader.getImage("test_5/reference.bmp");
         BufferedImage candidate = reader.getImage("test_5/candidate.bmp");
 
-        ImageTranslation objectiveFunction = new ImageTranslation(ref, candidate);
+        ImageTranslation objectiveFunction = new ImageTranslation(ref, candidate, false);
 
         PSOConfig<Vec2D> config = new PSOConfig<>(
                 15,
