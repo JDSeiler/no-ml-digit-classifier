@@ -2,12 +2,13 @@ package org.ru.pso.objectives;
 
 import org.ru.img.AbstractPixel;
 import org.ru.img.ImgReader;
+import org.ru.vec.FixedVector;
 
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.stream.Collectors;
 
-abstract public class ImageComparisonBase {
+abstract public class ImageComparisonBase<V extends FixedVector> {
     protected final List<AbstractPixel> refImg;
     protected final List<AbstractPixel> candidateImg;
     protected boolean useSquaredEuclidean = false;
@@ -31,6 +32,8 @@ abstract public class ImageComparisonBase {
             throw new RuntimeException("Reference image and candidate image must have the same number of abstract pixels in them!");
         }
     }
+
+    abstract double compute(V v);
 
     protected double[][] computeCostMatrix(List<AbstractPixel> refImg, List<AbstractPixel> candidateImg) {
         double[][] costMatrix = new double[refImg.size()][refImg.size()];
@@ -63,13 +66,26 @@ abstract public class ImageComparisonBase {
         return costMatrix;
     }
 
+    /**
+     * Convert a List of AbstractPixels to an array of greyscale values.
+     *
+     * @param img the image to convert
+     * @return the greyscale values of `img` in an array
+     */
+    protected double[] getGrayscaleArray(List<AbstractPixel> img) {
+        double[] contents = new double[img.size()];
+        for (int i = 0; i < contents.length; i++) {
+            contents[i] = img.get(i).grayscaleValue();
+        }
+        return contents;
+    }
+
     private double euclideanDistance(double x1, double y1, double x2, double y2) {
         return Math.sqrt(
                 Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)
         );
     }
 
-    // TODO: For use later
     private double squaredEuclideanDistance(double x1, double y1, double x2, double y2) {
         return Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2);
     }
