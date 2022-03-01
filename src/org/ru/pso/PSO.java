@@ -48,9 +48,19 @@ public class PSO<V extends FixedVector> {
         double bestSoFar = Double.MAX_VALUE;
         V locationOfGlobalBest = null;
 
+        boolean bestChangedThisIteration = false;
+        int durationBestUnchanged = 0; // measured in iterations
+
         for (int i = 0; i < 10_000; i++) {
+            bestChangedThisIteration = false;
+
             if (Math.abs(bestSoFar) <= 0.0000000001) {
                 System.out.printf("Found minimum in %d iterations.%n", i);
+                return new Solution<>(bestSoFar, locationOfGlobalBest);
+            }
+
+            if (durationBestUnchanged >= 1_000) {
+                System.out.printf("Global best has stopped converging after %d iterations.%n", i);
                 return new Solution<>(bestSoFar, locationOfGlobalBest);
             }
 
@@ -70,6 +80,9 @@ public class PSO<V extends FixedVector> {
                     bestSoFar = particleFitness;
                     System.out.printf("New best fitness: %.10f!%n", bestSoFar);
                     locationOfGlobalBest = p.getPos();
+
+                    bestChangedThisIteration = true;
+                    durationBestUnchanged = 0;
                 }
 
                 if (particleFitness < p.getPersonalBestFitness()) {
@@ -84,6 +97,9 @@ public class PSO<V extends FixedVector> {
                         config.personalBestScalar(),
                         config.neighborHoodBestScalar()
                 );
+            }
+            if (!bestChangedThisIteration) {
+                durationBestUnchanged++;
             }
         }
         return new Solution<>(bestSoFar, locationOfGlobalBest);
