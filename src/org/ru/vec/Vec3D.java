@@ -80,4 +80,9 @@ public class Vec3D implements FixedVector {
         }
         return new Vec3D(jitteredValues);
     }
+
+    @Override
+    public String toString() {
+        return Arrays.toString(this.v);
+    }
 }

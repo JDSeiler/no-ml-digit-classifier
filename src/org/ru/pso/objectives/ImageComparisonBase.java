@@ -58,8 +58,13 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
                             candidatePixel.y()
                     );
                 }
-                costMatrix[i][j] = cost;
-                costMatrix[j][i] = cost;
+                if (candidatePixel.isDud()) {
+                    costMatrix[i][j] = 0;
+                    costMatrix[j][i] = 0;
+                } else {
+                    costMatrix[i][j] = cost;
+                    costMatrix[j][i] = cost;
+                }
             }
         }
 
@@ -99,7 +104,7 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
     }
 
     /**
-     * Adds empty pixels to the provided image until it contains `largestImage` number
+     * Adds dud pixels to the provided image until it contains `largestImage` number
      * of AbstractPixels.
      *
      * If the size of the provided image is greater than or equal to `largestImage`, this
@@ -113,8 +118,10 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
             for (int i = 0; i < numPixelsToAdd; i++) {
                 // The grayscale value is the supply or demand of the pixel from the perspective
                 // of OT. So pixels with 0 weight are effectively ignored. This lets us run OT
-                // on images where the number of dark pixels is not equal.
-                img.add(new AbstractPixel(Double.MAX_VALUE, Double.MAX_VALUE, 0));
+                // on images where the number of dark pixels is not equal. We also set the 'isDud'
+                // field to true, which means their cost will also be 0 when computing the cost matrix.
+
+                img.add(new AbstractPixel(Double.MAX_VALUE, Double.MAX_VALUE, 0, true));
             }
         }
         // If this IS the largest image, do nothing.

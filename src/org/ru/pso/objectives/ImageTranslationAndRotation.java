@@ -87,12 +87,18 @@ public class ImageTranslationAndRotation extends ImageComparisonBase<Vec3D> {
         );
     }
 
+    /**
+     * Rotates a pixel counterclockwise by theta radians
+     * @param theta angle of rotation in radians
+     * @param pixel the pixel/point to rotate
+     * @return a new point which is the original, rotated counterclockwise by theta radians
+     */
     private AbstractPixel rotatePixelBy(double theta, AbstractPixel pixel) {
         double x = pixel.x();
         double y = pixel.y();
 
-        double newX = (x * Math.cos(theta)) + (y * -1 * Math.sin(theta));
-        double newY = (x * Math.sin(theta)) + (y * Math.sin(theta));
+        double newX = (x * Math.cos(theta)) - (y * Math.sin(theta));
+        double newY = (x * Math.sin(theta)) + (y * Math.cos(theta));
 
         return new AbstractPixel(newX, newY, pixel.grayscaleValue());
     }

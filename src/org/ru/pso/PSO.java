@@ -54,7 +54,7 @@ public class PSO<V extends FixedVector> {
         for (int i = 0; i < 10_000; i++) {
             bestChangedThisIteration = false;
 
-            if (Math.abs(bestSoFar) <= 0.0000000001) {
+            if (Math.abs(bestSoFar) <= 0.0000001) {
                 System.out.printf("Found minimum in %d iterations.%n", i);
                 return new Solution<>(bestSoFar, locationOfGlobalBest);
             }
@@ -78,7 +78,7 @@ public class PSO<V extends FixedVector> {
 
                 if (particleFitness < bestSoFar) {
                     bestSoFar = particleFitness;
-                    System.out.printf("New best fitness: %.10f!%n", bestSoFar);
+                    System.out.printf("New best fitness: %.15f!%n", bestSoFar);
                     locationOfGlobalBest = p.getPos();
 
                     bestChangedThisIteration = true;

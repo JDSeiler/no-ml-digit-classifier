@@ -3,6 +3,7 @@ package org.ru;
 import org.ru.img.AbstractPixel;
 import org.ru.img.ImgReader;
 import org.ru.pso.objectives.ImageTranslation;
+import org.ru.pso.objectives.ImageTranslationAndRotation;
 import org.ru.pso.objectives.WavyParabola;
 import org.ru.pso.PSO;
 import org.ru.pso.PSOConfig;
@@ -10,6 +11,7 @@ import org.ru.pso.Solution;
 import org.ru.pso.strategies.Placement;
 import org.ru.pso.strategies.Topology;
 import org.ru.vec.Vec2D;
+import org.ru.vec.Vec3D;
 
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
@@ -17,7 +19,7 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        testImageTranslation();
+        testImageComparison();
     }
 
     public static void testReadingImages() {
@@ -36,29 +38,33 @@ public class Main {
         System.out.println(apixels);
     }
 
-    public static void testImageTranslation() {
+    public static void testImageComparison() {
         ImgReader reader = new ImgReader("img");
         BufferedImage ref = reader.getImage("test_5/reference.bmp");
         BufferedImage candidate = reader.getImage("test_5/candidate.bmp");
 
-        ImageTranslation objectiveFunction = new ImageTranslation(ref, candidate, false);
+        ImageTranslationAndRotation objectiveFunction = new ImageTranslationAndRotation(ref, candidate, true);
 
-        PSOConfig<Vec2D> config = new PSOConfig<>(
+        PSOConfig<Vec3D> config = new PSOConfig<>(
                 15,
                 0.75,
                 1.3,
                 1.5,
                 Topology.COMPLETE,
                 Placement.RANDOM,
-                3.5,
-                new Vec2D(new double[]{10.0, 10.0})
+                5.0,
+                new Vec3D(new double[]{10.0, 10.0, 3.0})
         );
 
-        PSO<Vec2D> pso = new PSO<>(config, objectiveFunction::compute, Vec2D::new);
-        Solution<Vec2D> foundMinimum = pso.run();
+        PSO<Vec3D> pso = new PSO<>(config, objectiveFunction::compute, Vec3D::new);
+        Solution<Vec3D> foundMinimum = pso.run();
         System.out.println("Particle Locations:");
         pso.printSwarm();
-        System.out.printf("Best solution at end: %s%n", foundMinimum);
+        System.out.println("Best solution at end:");
+        double[] solution = foundMinimum.solution().components();
+        System.out.printf("Coordinates: %f, %f%n", solution[0], solution[1]);
+        System.out.printf("Rotation in radians: %f%n", solution[2]);
+        System.out.printf("Rotation in degrees mod 360: %f%n", (solution[2] * 180 / Math.PI) % 360);
     }
 
     public static void testWavyParabola() {
