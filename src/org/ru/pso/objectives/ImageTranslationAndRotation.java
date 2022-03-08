@@ -41,7 +41,8 @@ public class ImageTranslationAndRotation extends ImageComparisonBase<Vec3D> {
         return img.stream().map(oldPixel -> new AbstractPixel(
                 oldPixel.x() + xShift,
                 oldPixel.y() + yShift,
-                oldPixel.grayscaleValue()
+                oldPixel.grayscaleValue(),
+                oldPixel.isDud()
         )).collect(Collectors.toList());
     }
 
@@ -81,9 +82,10 @@ public class ImageTranslationAndRotation extends ImageComparisonBase<Vec3D> {
         double yShift = v.components()[1];
 
         return new AbstractPixel(
-            pixel.x() + xShift,
-            pixel.y() + yShift,
-            pixel.grayscaleValue()
+           pixel.x() + xShift,
+           pixel.y() + yShift,
+            pixel.grayscaleValue(),
+            pixel.isDud()
         );
     }
 
@@ -100,7 +102,7 @@ public class ImageTranslationAndRotation extends ImageComparisonBase<Vec3D> {
         double newX = (x * Math.cos(theta)) - (y * Math.sin(theta));
         double newY = (x * Math.sin(theta)) + (y * Math.cos(theta));
 
-        return new AbstractPixel(newX, newY, pixel.grayscaleValue());
+        return new AbstractPixel(newX, newY, pixel.grayscaleValue(), pixel.isDud());
     }
 
     private Vec2D findCenterOfMass(List<AbstractPixel> img) {

@@ -78,7 +78,7 @@ public class PSO<V extends FixedVector> {
 
                 if (particleFitness < bestSoFar) {
                     bestSoFar = particleFitness;
-                    System.out.printf("New best fitness: %.15f!%n", bestSoFar);
+                    // System.out.printf("New best fitness: %.15f!%n", bestSoFar);
                     locationOfGlobalBest = p.getPos();
 
                     bestChangedThisIteration = true;

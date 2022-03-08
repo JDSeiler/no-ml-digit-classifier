@@ -30,7 +30,8 @@ public class ImageTranslation extends ImageComparisonBase<Vec2D> {
         return img.stream().map(oldPixel -> new AbstractPixel(
                 oldPixel.x() + xShift,
                 oldPixel.y() + yShift,
-                oldPixel.grayscaleValue()
+                oldPixel.grayscaleValue(),
+                oldPixel.isDud()
         )).collect(Collectors.toList());
     }
 }

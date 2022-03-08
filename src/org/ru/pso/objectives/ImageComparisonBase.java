@@ -58,7 +58,7 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
                             candidatePixel.y()
                     );
                 }
-                if (candidatePixel.isDud()) {
+                if (candidatePixel.isDud() || refPixel.isDud()) {
                     costMatrix[i][j] = 0;
                     costMatrix[j][i] = 0;
                 } else {
