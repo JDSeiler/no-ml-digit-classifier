@@ -10,6 +10,7 @@ import org.ru.pso.strategies.Topology;
 import org.ru.vec.Vec3D;
 
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
@@ -29,8 +30,9 @@ public class Main {
         ImgReader reader = new ImgReader("img/moderate-tests");
         // The number `j` at index `i` => PSO categorized the digit `i` as `j`
         int[] psoAnswers = new int[10];
+        Arrays.fill(psoAnswers, -1);
 
-        for (int i = 4; i < 5; i++) {
+        for (int i = 3; i < 4; i++) {
             System.out.printf("Candidate: %d%n", i);
             BufferedImage cand = reader.getImage(String.format("candidate-%d.bmp", i));
             // lower is better
@@ -39,7 +41,7 @@ public class Main {
                 System.out.printf("%n%nChecking against reference digit: %d%n", j);
                 BufferedImage ref = reader.getImage(String.format("reference-%d.bmp", j));
 
-                ImageTranslationAndRotation objectiveFunction = new ImageTranslationAndRotation(cand, ref, false);
+                ImageTranslationAndRotation objectiveFunction = new ImageTranslationAndRotation(ref, cand, false);
 
                 PSOConfig<Vec3D> config = new PSOConfig<>(
                         15,
@@ -68,7 +70,7 @@ public class Main {
             }
         }
 
-        System.out.println("PSO Answers: ");
+        System.out.println("\n\nPSO Answers: ");
         for (int i = 0; i < psoAnswers.length; i++) {
             System.out.printf("Candidate %d matched to: %d%n", i, psoAnswers[i]);
         }

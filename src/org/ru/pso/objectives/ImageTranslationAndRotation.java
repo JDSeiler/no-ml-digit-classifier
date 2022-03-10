@@ -31,7 +31,10 @@ public class ImageTranslationAndRotation extends ImageComparisonBase<Vec3D> {
         double[] demands = this.getGrayscaleArray(shiftedAndRotatedCandidate);
         double[][] costs = this.computeCostMatrix(this.refImg, shiftedAndRotatedCandidate);
         Mapping mapping = new Mapping(n, supplies, demands, costs, 0.01);
-        return mapping.getTotalCost();
+        // Penalize rotation
+        double rotationPenalty = Math.abs(theta);
+
+        return mapping.getTotalCost() + (rotationPenalty*rotationPenalty);
     }
 
     private List<AbstractPixel> translateAllPixels(Vec2D v, List<AbstractPixel> img) {

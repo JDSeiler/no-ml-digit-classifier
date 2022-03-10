@@ -92,7 +92,11 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
     }
 
     private double squaredEuclideanDistance(double x1, double y1, double x2, double y2) {
-        return Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2);
+        // Something about this causes the program to hang badly, no clue why...
+        // return Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2);
+
+        // Sometimes, the program will still get stuck even doing this.
+        return ((x2-x1) * (x2-x1)) + ((y2-y1) * (y2-y1));
     }
 
     private List<AbstractPixel> normalizeAbstractPixels(List<AbstractPixel> img) {

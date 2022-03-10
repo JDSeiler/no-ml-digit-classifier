@@ -49,4 +49,6 @@ public interface FixedVector {
      * @return the jittered vector
      */
     FixedVector jitter();
+
+    //TODO: Add a "clamp" method to cap each vector component at some magnitude?
 }
