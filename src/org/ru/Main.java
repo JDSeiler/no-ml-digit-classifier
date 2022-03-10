@@ -17,13 +17,24 @@ public class Main {
         System.out.println("=== Starting PSO ===\n");
         long start = System.nanoTime();
 
-        testDigitRecognition();
+        manualObjectiveFunctionTesting();
 
         System.out.println("\n=== PSO is complete ===\n");
         long end = System.nanoTime();
         double timeInMs = (end - start) / 1_000_000.0;
         double timeInSec = timeInMs / 1_000.0;
         System.out.printf("PSO took %.2f ms (%.5f s)", timeInMs, timeInSec);
+    }
+
+    public static void manualObjectiveFunctionTesting() {
+        ImgReader reader = new ImgReader("img/moderate-tests");
+        BufferedImage cand = reader.getImage("candidate-3.bmp");
+        BufferedImage ref = reader.getImage("reference-7.bmp");
+        ImageTranslationAndRotation objectiveFunction = new ImageTranslationAndRotation(ref, cand, false);
+        Vec3D testTransformation = new Vec3D(new double[]{0.32, 2.53, 0.29});
+        double ans = objectiveFunction.compute(testTransformation);
+
+        System.out.printf("%f%n", ans);
     }
 
     public static void testDigitRecognition() {
