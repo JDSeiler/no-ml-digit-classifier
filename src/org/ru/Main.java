@@ -16,13 +16,62 @@ public class Main {
         System.out.println("=== Starting PSO ===\n");
         long start = System.nanoTime();
 
-        testImageComparison();
+        testDigitRecognition();
 
         System.out.println("\n=== PSO is complete ===\n");
         long end = System.nanoTime();
         double timeInMs = (end - start) / 1_000_000.0;
         double timeInSec = timeInMs / 1_000.0;
         System.out.printf("PSO took %.2f ms (%.5f s)", timeInMs, timeInSec);
+    }
+
+    public static void testDigitRecognition() {
+        ImgReader reader = new ImgReader("img/moderate-tests");
+        // The number `j` at index `i` => PSO categorized the digit `i` as `j`
+        int[] psoAnswers = new int[10];
+
+        for (int i = 4; i < 5; i++) {
+            System.out.printf("Candidate: %d%n", i);
+            BufferedImage cand = reader.getImage(String.format("candidate-%d.bmp", i));
+            // lower is better
+            double bestFitnessForThisDigit = Double.MAX_VALUE;
+            for (int j = 0; j < 10; j++) {
+                System.out.printf("%n%nChecking against reference digit: %d%n", j);
+                BufferedImage ref = reader.getImage(String.format("reference-%d.bmp", j));
+
+                ImageTranslationAndRotation objectiveFunction = new ImageTranslationAndRotation(cand, ref, false);
+
+                PSOConfig<Vec3D> config = new PSOConfig<>(
+                        15,
+                        0.75,
+                        1.3,
+                        1.5,
+                        Topology.COMPLETE,
+                        Placement.RANDOM,
+                        5.0,
+                        new Vec3D(new double[]{10.0, 10.0, 3.0})
+                );
+
+                PSO<Vec3D> pso = new PSO<>(config, objectiveFunction::compute, Vec3D::new);
+                Solution<Vec3D> foundMinimum = pso.run();
+
+                double[] solution = foundMinimum.solution().components();
+                System.out.printf("Fitness against reference digit %d is: %.6f%n", j, foundMinimum.fitnessScore());
+                System.out.printf("Coordinates: %f, %f%n", solution[0], solution[1]);
+                System.out.printf("Rotation in radians: %f%n", solution[2]);
+                System.out.printf("Rotation in degrees mod 360: %f%n", (solution[2] * 180 / Math.PI) % 360);
+
+                if (foundMinimum.fitnessScore() < bestFitnessForThisDigit) {
+                    bestFitnessForThisDigit = foundMinimum.fitnessScore();
+                    psoAnswers[i] = j;
+                }
+            }
+        }
+
+        System.out.println("PSO Answers: ");
+        for (int i = 0; i < psoAnswers.length; i++) {
+            System.out.printf("Candidate %d matched to: %d%n", i, psoAnswers[i]);
+        }
     }
 
     public static void testImageComparison() {
