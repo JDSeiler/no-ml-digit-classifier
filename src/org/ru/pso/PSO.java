@@ -77,12 +77,14 @@ public class PSO<V extends FixedVector> {
                 double particleFitness = cost.apply(p.getPos());
 
                 if (particleFitness < bestSoFar) {
+                    double oldBest = bestSoFar;
                     bestSoFar = particleFitness;
-                    // System.out.printf("New best fitness: %.15f!%n", bestSoFar);
                     locationOfGlobalBest = p.getPos();
 
-                    bestChangedThisIteration = true;
-                    durationBestUnchanged = 0;
+                    if (Math.abs(bestSoFar - oldBest) > 0.00001) {
+                        bestChangedThisIteration = true;
+                        durationBestUnchanged = 0;
+                    }
                 }
 
                 if (particleFitness < p.getPersonalBestFitness()) {
