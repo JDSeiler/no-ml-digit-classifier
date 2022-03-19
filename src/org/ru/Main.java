@@ -17,7 +17,7 @@ public class Main {
         System.out.println("=== Starting PSO ===\n");
         long start = System.nanoTime();
 
-        manualObjectiveFunctionTesting();
+        testDigitRecognition();
 
         System.out.println("\n=== PSO is complete ===\n");
         long end = System.nanoTime();
@@ -29,9 +29,10 @@ public class Main {
     public static void manualObjectiveFunctionTesting() {
         ImgReader reader = new ImgReader("img/moderate-tests");
         BufferedImage cand = reader.getImage("candidate-3.bmp");
-        BufferedImage ref = reader.getImage("reference-7.bmp");
+        BufferedImage ref = reader.getImage("reference-3.bmp");
+
         ImageTranslationAndRotation objectiveFunction = new ImageTranslationAndRotation(ref, cand, false);
-        Vec3D testTransformation = new Vec3D(new double[]{0.32, 2.53, 0.29});
+        Vec3D testTransformation = new Vec3D(new double[]{1.0, 2.00, 0.0});
         double ans = objectiveFunction.compute(testTransformation);
 
         System.out.printf("%f%n", ans);
