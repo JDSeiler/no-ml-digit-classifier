@@ -28,10 +28,13 @@ public class Mapping {
 
         double max = 0;
 
+        // IntelliJ tells me this isn't used? Am I missing something?
         for (int i = 0; i < n; i++) {
             max = Double.max(max, supplies[i]);
         }
 
+        // Find the largest edge cost, which is called `C` in the paper. not to be confused with `C` in the code
+        // which is the cost matrix.
         double maxCost = 0;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
@@ -43,11 +46,15 @@ public class Mapping {
         int[][] scaledC = new int[n][n];
         int[] scaledDemands = new int[n];
         int[] scaledSupplies = new int[n];
+        // In the paper alpha simplifies to 4nC / delta. `n` is added when the demands/supplies are scaled.
+        // not in the definition of alpha.
         double alpha = 4.*maxCost / delta;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
+                // TODO: In the paper the costs are scaled by 4/delta? By alpha != 4/delta
                 scaledC[i][j] = (int)(C[i][j] * alpha);
             }
+            // Ahh here's where the n is added.
             scaledDemands[i] = (int)(Math.ceil(demands[i] * alpha * n));
             scaledSupplies[i] = (int)(supplies[i] * alpha * n);
         }
@@ -78,6 +85,8 @@ public class Mapping {
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
+                // TODO: I get a little lost in the indexing here. But just trusting
+                // that scaledFlow[i+n][j] is the flow along that edge, I understand the division.
                 flow[i][j] = scaledFlow[i + n][j] / (n * alpha);
                 residualSupply[j] -= flow[i][j];
                 residualDemand[i] -= flow[i][j];
@@ -86,10 +95,12 @@ public class Mapping {
 
         //Push back some flow incoming to demand constraints that are violated.
         for (int j = 0; j < n; j++) {
+            // We are looking for all vertices of A which are "over-saturated"
             for (int i = 0; residualDemand[j] < 0 && i < n; i++) {
                 double reduction = Double.min(-residualDemand[j], flow[j][i]);
                 flow[j][i] -= reduction;
                 residualDemand[j] += reduction;
+                // Observe how this increases residual supply
                 residualSupply[i] += reduction;
             }
         }

@@ -90,6 +90,7 @@ public class GTTransport {
         bFree = new boolean[n];
         aFree = new boolean[n];
 
+        // Trivially, if the input supply or demand of a vertex is 0, we can say it's free.
         for(int i = 0; i < n; i++) {
             bFree[i] = supplies[i] != 0;
             aFree[i] = demands[i] != 0;
@@ -106,6 +107,8 @@ public class GTTransport {
 
         for(int i = 0; i < n; i++) {
             for(int j = 0; j < n; j++) {
+                // The residual capacity of a forward edge: (b, a) is the minimum between the remaining supply at b
+                // Or the unsatisfied demand at a.
                 capacityBA[i][j] = Math.min(deficiencyB[i], deficiencyA[j]);
             }
         }
@@ -132,6 +135,8 @@ public class GTTransport {
             boolean[] finalDist = new boolean[2*n];
             Arrays.fill(lv, Integer.MAX_VALUE);
             for (int i = 0; i < n; i++) {
+                // This is part of the algorithm, we connect S to every free vertex of B
+                // with a 0 cost edge. So the ith vertex of B trivially has l_v of 0.
                 if (bFree[i]) {
                     lv[i] = 0;
                 }
@@ -142,6 +147,9 @@ public class GTTransport {
             //Will break out early if free vertex of A is reached.
             for (int i = 0; i < 2*n; i++) {
                 //Find the next vertex to add to the shortest path tree
+                // This loop finds the vertex with the cheapest l_v so far. Dijkstra's
+                // explores the cheapest path first so this vertex (represented by minIndex)
+                // is the place we should explore from next.
                 int minDist = Integer.MAX_VALUE;
                 int minIndex = -1; //Placeholder
                 for (int v = 0; v < 2*n; v++) {
@@ -159,13 +167,23 @@ public class GTTransport {
                 assert(minIndex != -1);
                 assert(minDist < Integer.MAX_VALUE);
 
+                // Recall that in lv the first n vertices are in B, the second n vertices are in A
+                // So if minIndex is < n, the cheapest vertex must be in B. Similarly, if it's >= n
+                // then the closest/"cheapest" vertex must be in A.
                 if (minIndex < n) {
                     //Add a vertex of type B to the tree
                     //Update distances to all neighbors in A
                     for (int a = 0; a < n; a++) {
+                        // Recall that we are performing Dijkstra's over (basically) the residual graph.
+                        // If there is no capacity from this vertex b to the other vertex a, that implies
+                        // there is no edge b -> a in the residual graph.
                         if (capacityBA[minIndex][a] > 0) {
                             int aIndex = a + n;
+                            // Recall that the costs of the edges in the residual graph are actually the slacks.
+                            // This is exactly the definition of slack for forward edges.
                             int newDist = lv[minIndex] + CBA[minIndex][a] + 1 - y[minIndex] - y[aIndex];
+
+                            // Normal Dijkstra's stuff, if we found a cheaper path to this vertex, update it.
                             if (newDist < lv[aIndex]) {
                                 lv[aIndex] = newDist;
                             }
@@ -175,11 +193,18 @@ public class GTTransport {
                 else {
                     //Add a vertex of type A to the tree
                     //Update distances to all neighbors in B
+
+                    // lv is a single array containing a and b, but other data structures are kept as two
+                    // separate arrays, one for a and one for b. This line "normalizes" the lv index so that
+                    // it can be used in an array which only contains vertices of a.
                     int a = minIndex - n;
+                    // If we found a free vertex of A, we found an augmenting path and can end early.
                     if (aFree[a]) {
                         distAF = lv[minIndex];
                         break;
                     }
+
+                    // Otherwise, do the same edge-cost update operation.
                     for (int b = 0; b < n; b++) {
                         if (capacityAB[a][b] > 0) {
                             int newDist = lv[minIndex] + y[a + n] + y[b] - CAB[a][b];
@@ -198,14 +223,17 @@ public class GTTransport {
 
             //Now, perform dual adjustments
             for (int i = 0; i < lv.length; i++) {
+                // distAF - lv[i] === lt - lv on page 6
                 int delta = Math.max(distAF - lv[i], 0);
                 if (i < n) {
                     //i is a vertex of B; increase dual
+                    // Same as y(v) + (lt - lv)
                     y[i] += delta;
                     assert(y[i] >= 0);
                 }
                 else {
                     // i is a vertex of A. Decrease dual.
+                    // Same as y(v) - lt + lv
                     y[i] -= delta;
                     assert(y[i] <= 0);
                 }
@@ -222,6 +250,7 @@ public class GTTransport {
             //These values persist throughout all partial DFS searches this phase
             vertexVisited = new int[2*n];
             for (int i = 0; i < n; i++) {
+                // TODO: This sentinel value kind of confuses me.
                 vertexVisited[i] = n-1;
             }
             for (int i = 0; i < n; i++) {
@@ -232,6 +261,10 @@ public class GTTransport {
                 if (bFree[vertex]) {
                     //For each free vertex, repeatedly find admissible APs
                     //until no more can be found.
+
+                    // Clearly if we've checked every last vertex in the array (the array only has 2*n elements)
+                    // then we've DFS'd everything and can stop. But that assumes we visit vertices in strictly increasing
+                    // order of index?
                     while (deficiencyB[vertex] > 0 && vertexVisited[vertex] < 2*n - 1) {
                         ArrayList<Integer> ap = null;
 
@@ -248,7 +281,10 @@ public class GTTransport {
 
                         //Compute the bottleneck capacity beta: the maximum amount of flow that can be pushed
                         //without violating some vertex / edge capacity constraint.
+
+                        // These are the first two constrains in computing r_p
                         int beta = Integer.min(deficiencyB[ap.get(0)], deficiencyA[ap.get(ap.size() - 1) - n]);
+                        // This loop checks for the bottleneck edge set. Checks adjacent pairs of vertices (edges)
                         for (int j = 0; j < ap.size() - 1; j++) {
                             int u = ap.get(j);
                             int v = ap.get(j + 1);
@@ -269,6 +305,13 @@ public class GTTransport {
                             int v = ap.get(j + 1);
                             if (u >= n) {
                                 //edge is directed from A to B
+
+                                // This was a detail I didn't fully grasp. Each undirected edge of the input has a forward
+                                // and backward version in the residual graph. When we augment we remove flow from the forward
+                                // edge and push it to the backward edge. Every reduction/increase in flow is accompanied by the
+                                // inverse operation on the edge that goes between the same vertices, but in the opposite direction.
+
+                                // Here the edge is from A -> B, so we "free up" some flow by redirecting it to the forward edge.
                                 capacityAB[u - n][v] -= beta;
                                 capacityBA[v][u - n] += beta;
                                 if (capacityAB[u - n][v] > 0) {
@@ -279,6 +322,8 @@ public class GTTransport {
                             }
                             else {
                                 //edge is directed from B to A
+
+                                // Here, we are taking some "unmatched" flow and committing it to this edge (a,b).
                                 capacityBA[u][v - n] -= beta;
                                 capacityAB[v - n][u] += beta;
                                 if (capacityBA[u][v - n] > 0) {
@@ -288,6 +333,26 @@ public class GTTransport {
                                 }
                             }
                         }
+
+                        /*
+                        * We only have to update the "deficiencies" (residual capacity?) of the endpoints for the
+                        * following reason. Imagine some vertex `v` in the middle of the augmenting path `P`.
+                        * P contains one edge that goes to v, and one edge that leaves from v. Imagine we augment
+                        * by `k` units. It's easy to get tangled up here so I'll keep this general.
+                        *
+                        * There is some edge from B -> A (u,v) in P, and another edge A -> B (v, w) in P. When we augment
+                        * along (u,v), that's an edge from B -> A, so we shift flow from the forward edge to the backward
+                        * edge. This means we satisfy K units of demand at v.
+                        *
+                        * But, when we then augment (v,w), we shift flow from the backward edge to the forward edge.
+                        * This reintroduces those k units of demand. A fundamentally identical argument can be used
+                        * for internal vertices that live in B, just swap "supply" for "demand".
+                        *
+                        * The only vertices that do not have their supply/demand symmetrically change like this are
+                        * the vertices on the ends. At the end, we end up with less un-transported supply from the
+                        * start vertex B. And less unsatisfied demand at the end vertex A.
+                        *
+                        * */
 
                         //Next, update the deficiencies of the endpoints of the path
                         int first = ap.get(0);
@@ -318,6 +383,12 @@ public class GTTransport {
         finalCapacity = new int[2*n][2*n];
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
+                // The edges are "backwards" in the residual graph. An edge from A -> B represents
+                // how much flow we've matched (are transporting) across the undirected edge a,b
+                // An edge from B -> A represents how much flow we are not transporting (this breaks down a bit?
+                // maybe I don't understand it?) along the undirected edge a,b
+                // Point being, I have a hunch this is just about mapping the residual graph back to something
+                // more user friendly.
                 finalCapacity[i + n][j] = capacityAB[i][j];
                 finalCapacity[i][j + n] = capacityBA[i][j];
             }
@@ -336,6 +407,7 @@ public class GTTransport {
         path.add(start);
         while (!path.isEmpty()) {
             int end = path.get(path.size() - 1);
+            // If the end is a free vertex of A
             if (end >= n && aFree[end - n]) {
                 //Found an AP
                 return path;
@@ -343,12 +415,18 @@ public class GTTransport {
             //Attempt to expand path
             boolean backtrack = true;
             int rangeStart = vertexVisited[end] + 1;
+            // If the current vertex is in B (< n) we want to explore things in A.
+            // Otherwise, we only want to explore things in B.
             int rangeEnd = end < n ? 2*n : n;
+
+            // This makes sure we explore things in increasing index order, I think
             for (int i = rangeStart; i < rangeEnd; i++) {
+                // This stops us from visiting this vertex again when we backtrack.
                 vertexVisited[end] = i;
                 if (end < n) {
                     //current vertex is type B
                     int a = i - n;
+                    // If the edge is admissible and there is residual capacity (the edge exists)
                     if (CBA[end][a] + 1 - y[end] - y[a + n] == 0 && capacityBA[end][a] > 0) {
                         backtrack = false;
                         //Add vertex to path
@@ -359,6 +437,7 @@ public class GTTransport {
                 else {
                     //current vertex is type A
                     int a = end - n;
+                    // Same deal, as B -> A :: Check the edge is admissible and that it has capacity
                     if (capacityAB[a][i] > 0 && y[a + n] + y[i] == CAB[a][i]) {
                         backtrack = false;
                         //Add vertex to path

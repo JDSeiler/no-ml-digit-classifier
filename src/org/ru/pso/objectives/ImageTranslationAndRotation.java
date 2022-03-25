@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ImageTranslationAndRotation extends ImageComparisonBase<Vec3D> {
+    private List<AbstractPixel> lastSetOfCandidatePoints = null;
+    private List<AbstractPixel> lastSetOfReferencePoints = null;
+
+
     public ImageTranslationAndRotation(BufferedImage referenceImage, BufferedImage candidateImage, boolean useSquaredEuclidean) {
         super(referenceImage, candidateImage, useSquaredEuclidean);
     }
@@ -25,6 +29,11 @@ public class ImageTranslationAndRotation extends ImageComparisonBase<Vec3D> {
         List<AbstractPixel> shiftedPixels = this.translateAllPixels(shift, this.candidateImg);
         Vec2D centerOfRotation = this.findCenterOfMass(shiftedPixels);
         List<AbstractPixel> shiftedAndRotatedCandidate = this.rotateAllPixelsAround(centerOfRotation, theta, shiftedPixels);
+
+        // These are exposed PURELY for drawing code -- we need the coordinates of the points to draw diagrams
+        // of the results.
+        this.lastSetOfCandidatePoints = shiftedAndRotatedCandidate;
+        this.lastSetOfReferencePoints = this.refImg;
 
         int n = this.refImg.size();
         double[] supplies = this.getGrayscaleArray(this.refImg);
@@ -139,4 +148,11 @@ public class ImageTranslationAndRotation extends ImageComparisonBase<Vec3D> {
         return new Vec2D(accumulator);
     }
 
+    public List<AbstractPixel> getLastSetOfCandidatePoints() {
+        return lastSetOfCandidatePoints;
+    }
+
+    public List<AbstractPixel> getLastSetOfReferencePoints() {
+        return lastSetOfReferencePoints;
+    }
 }
