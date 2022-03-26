@@ -2,6 +2,8 @@ package org.ru;
 
 import org.ru.concurrent.ImageClassificationResult;
 import org.ru.concurrent.ThreadableImageClassification;
+import org.ru.drawing.PointCloud;
+import org.ru.img.AbstractPixel;
 import org.ru.img.ImgReader;
 import org.ru.pso.objectives.ImageTranslationAndRotation;
 import org.ru.pso.PSO;
@@ -12,6 +14,7 @@ import org.ru.pso.strategies.Topology;
 import org.ru.vec.Vec3D;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -25,7 +28,7 @@ public class Main {
         long start = System.nanoTime();
 
         try {
-            testDigitRecognition();
+            testPair();
         } catch(Exception e) {
             System.out.println("Something went wrong!");
             System.err.println(e);
@@ -36,6 +39,33 @@ public class Main {
         double timeInMs = (end - start) / 1_000_000.0;
         double timeInSec = timeInMs / 1_000.0;
         System.out.printf("PSO took %.2f ms (%.5f s)", timeInMs, timeInSec);
+    }
+
+    public static void testPair() throws IOException {
+        ImgReader reader = new ImgReader("img/moderate-tests");
+        BufferedImage ref = reader.getImage("reference-3.bmp");
+        BufferedImage cand = reader.getImage("candidate-7.bmp");
+
+        ImageTranslationAndRotation objectiveFunction = new ImageTranslationAndRotation(ref, cand, false);
+
+        PSOConfig<Vec3D> config = new PSOConfig<>(
+                15,
+                0.75,
+                1.3,
+                1.5,
+                Topology.COMPLETE,
+                Placement.RANDOM,
+                5.0,
+                new Vec3D(new double[]{10.0, 10.0, 3.0})
+        );
+
+        PSO<Vec3D> pso = new PSO<>(config, objectiveFunction::compute, Vec3D::new);
+        Solution<Vec3D> foundMinimum = pso.run();
+
+        List<AbstractPixel> finalCandidatePoints = objectiveFunction.getLastSetOfCandidatePoints();
+        List<AbstractPixel> referencePoints = objectiveFunction.getLastSetOfReferencePoints();
+
+        PointCloud.drawDigitComparison(referencePoints, "ref3.txt", finalCandidatePoints, "cand7.txt");
     }
 
     public static void testDigitRecognition() throws InterruptedException, ExecutionException {

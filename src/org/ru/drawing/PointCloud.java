@@ -16,6 +16,24 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 
 public class PointCloud {
+
+    public static void drawDigitComparison(List<AbstractPixel> reference, String referenceLabel, List<AbstractPixel> candidate, String candidateLabel) throws IOException {
+        // TODO: Delete temporary files after?
+        dumpToFile(reference, referenceLabel);
+        dumpToFile(candidate, candidateLabel);
+        invokeMatplotLib(referenceLabel, candidateLabel);
+    }
+    public static void invokeMatplotLib(String referenceFileName, String candidateFileName) throws IOException {
+        ProcessBuilder pb = new ProcessBuilder(
+                "python",
+                "./util/draw_image_comparison.py",
+                String.format("./temp/%s", referenceFileName),
+                String.format("./temp/%s", candidateFileName)
+                );
+        pb.inheritIO();
+        pb.start();
+    }
+
     public static void dumpToFile(List<AbstractPixel> pixels) {
         Random rand = new Random();
         int id = rand.nextInt(10_000);
