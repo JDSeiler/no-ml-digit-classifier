@@ -10,3 +10,6 @@
 *.jpg
 *.jpeg
 *.png
+
+/temp/*
+!/temp/.gitkeep
