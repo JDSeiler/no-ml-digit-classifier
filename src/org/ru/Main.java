@@ -71,9 +71,6 @@ public class Main {
     public static void testDigitRecognition() throws InterruptedException, ExecutionException {
         ImgReader reader = new ImgReader("img/moderate-tests");
 
-        // TODO: It doesn't really matter, but I've got the terms "reference" and "candidate" swapped from what they
-        // should be in this code. I need to shore all that up so I understand exactly what images are being used for what.
-
         // TODO: More thorough inspection of EVERYTHING. Something is no right with these fitness scores
 
         ArrayList<BufferedImage> references = new ArrayList<>();
@@ -82,6 +79,19 @@ public class Main {
         }
 
         ExecutorService pool = Executors.newFixedThreadPool(10);
+
+        /*
+        * It might feel kind of strange to put the candidate in the outer loop and then the reference.
+        * Think of it this way:
+        * 1. We have some candidate, we don't know what it is
+        * 2. We're going to compare that candidate to all available reference images.
+        *
+        * Thus, we are trying to identify each candidate in turn. Then to identify each candidate we
+        * select each reference in turn.
+        *
+        * Just remember this convention: The Candidate is ALWAYS ALWAYS ALWAYS the image that moves.
+        * The reference image is ALWAYS stationary.
+        * */
 
         for (int i = 0; i < 10; i++) {
             System.out.printf("Candidate: %d%n", i);
@@ -93,7 +103,7 @@ public class Main {
             for (int j = 0; j < 10; j++) {
                 BufferedImage ref = references.get(j);
 
-                ThreadableImageClassification comparison = new ThreadableImageClassification(i, cand, j, ref);
+                ThreadableImageClassification comparison = new ThreadableImageClassification(j, ref, i, cand);
                 comparisons.add(comparison);
             }
 
