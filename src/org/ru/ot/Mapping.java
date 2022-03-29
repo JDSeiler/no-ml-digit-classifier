@@ -51,10 +51,10 @@ public class Mapping {
         double alpha = 4.*maxCost / delta;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                // TODO: In the paper the costs are scaled by 4/delta? By alpha != 4/delta
+                // TODO: In the paper the costs are scaled by 4/delta? But alpha != 4/delta
                 scaledC[i][j] = (int)(C[i][j] * alpha);
             }
-            // Ahh here's where the n is added.
+            // Ahh here's where the n is factored in.
             scaledDemands[i] = (int)(Math.ceil(demands[i] * alpha * n));
             scaledSupplies[i] = (int)(supplies[i] * alpha * n);
         }

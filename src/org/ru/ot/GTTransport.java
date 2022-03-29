@@ -83,6 +83,8 @@ public class GTTransport {
         //We follow this convention also for slacks, etc.
         //Note that this convention is the opposite of that used for the original Matlab implementation of this code.
         //The difference is because of how both languages store arrays (column vs. row order)
+        // Transposing swaps things over the diagonal. So to get the same exact edge you
+        // must switch the order of i and j when you index.
         CBA = transpose(C);
         CAB = C;
 
@@ -174,9 +176,10 @@ public class GTTransport {
                     //Add a vertex of type B to the tree
                     //Update distances to all neighbors in A
                     for (int a = 0; a < n; a++) {
-                        // Recall that we are performing Dijkstra's over (basically) the residual graph.
-                        // If there is no capacity from this vertex b to the other vertex a, that implies
-                        // there is no edge b -> a in the residual graph.
+                        // If there is no capacity, that means one of the incident
+                        // vertices has no supply/demand. In which case we don't
+                        // bother exploring through thsi vertex because that will
+                        // make the bottleneck capacity 0.
                         if (capacityBA[minIndex][a] > 0) {
                             int aIndex = a + n;
                             // Recall that the costs of the edges in the residual graph are actually the slacks.
@@ -426,7 +429,7 @@ public class GTTransport {
                 if (end < n) {
                     //current vertex is type B
                     int a = i - n;
-                    // If the edge is admissible and there is residual capacity (the edge exists)
+                    // If the edge is admissible and there is residual capacity (the edge is useful at all)
                     if (CBA[end][a] + 1 - y[end] - y[a + n] == 0 && capacityBA[end][a] > 0) {
                         backtrack = false;
                         //Add vertex to path
