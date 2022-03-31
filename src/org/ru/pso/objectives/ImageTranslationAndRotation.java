@@ -38,6 +38,16 @@ public class ImageTranslationAndRotation extends ImageComparisonBase<Vec3D> {
         int n = this.refImg.size();
         double[] supplies = this.getGrayscaleArray(this.refImg);
         double[] demands = this.getGrayscaleArray(shiftedAndRotatedCandidate);
+        /*
+         * TODO: Improve 'knowability' of delta's performance
+         * What we want: To know how "good" a given delta error is.
+         * What we need: A known max edge cost.
+         *
+         * What to do:
+         * 1. Normalize all edge costs so that the largest edge cost is 1 (divide all edges by the existing max edge cost)
+         * 2. Run OT
+         * 3. Take the fitness result, and multiply it by the max edge cost we used to do the scaling.
+         * */
         double[][] costs = this.computeCostMatrix(this.refImg, shiftedAndRotatedCandidate);
 
 

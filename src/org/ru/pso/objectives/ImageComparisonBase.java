@@ -58,11 +58,18 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
                             candidatePixel.y()
                     );
                 }
+                // Ref image is ALWAYS the supply
+                // Cand image is ALWAYS the demand
+                // Mapping.java expects C (the costs) to be defined, such that
+                // C[p][q] == cost from demand vertex P to supply vertex Q
+                // i is a ref pixel
+                // j is a cand pixel
+                // Therefore, C[j][i] == jth demand to ith supply, exactly what we want
                 if (candidatePixel.isDud() || refPixel.isDud()) {
-                    costMatrix[i][j] = 0;
+                    // costMatrix[i][j] = 0;
                     costMatrix[j][i] = 0;
                 } else {
-                    costMatrix[i][j] = cost;
+                    // costMatrix[i][j] = cost;
                     costMatrix[j][i] = cost;
                 }
             }

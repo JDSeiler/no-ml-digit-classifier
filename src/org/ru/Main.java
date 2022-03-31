@@ -42,9 +42,22 @@ public class Main {
     }
 
     public static void testPair() throws IOException {
+        /*
+        * Candidate 2:
+        * - Reference 1
+        * - Reference 2
+        *
+        * Candidate 5:
+        * - Reference 6
+        * - Reference 5
+        *
+        * Candidate 8:
+        * - Reference 3
+        * - Reference 8
+        * */
         ImgReader reader = new ImgReader("img/moderate-tests");
-        BufferedImage ref = reader.getImage("reference-3.bmp");
-        BufferedImage cand = reader.getImage("candidate-7.bmp");
+        BufferedImage ref = reader.getImage("reference-8.bmp");
+        BufferedImage cand = reader.getImage("candidate-8.bmp");
 
         ImageTranslationAndRotation objectiveFunction = new ImageTranslationAndRotation(ref, cand, false);
 
@@ -61,11 +74,12 @@ public class Main {
 
         PSO<Vec3D> pso = new PSO<>(config, objectiveFunction::compute, Vec3D::new);
         Solution<Vec3D> foundMinimum = pso.run();
+        System.out.printf("ref8 to cand8 was: %.05f%n", foundMinimum.fitnessScore());
 
         List<AbstractPixel> finalCandidatePoints = objectiveFunction.getLastSetOfCandidatePoints();
         List<AbstractPixel> referencePoints = objectiveFunction.getLastSetOfReferencePoints();
 
-        PointCloud.drawDigitComparison(referencePoints, "ref3.txt", finalCandidatePoints, "cand7.txt");
+        PointCloud.drawDigitComparison(referencePoints, "ref8.txt", finalCandidatePoints, "cand8.txt");
     }
 
     public static void testDigitRecognition() throws InterruptedException, ExecutionException {
