@@ -5,6 +5,7 @@ import org.ru.concurrent.ThreadableImageClassification;
 import org.ru.drawing.PointCloud;
 import org.ru.img.AbstractPixel;
 import org.ru.img.ImgReader;
+import org.ru.pso.objectives.ImageTRS;
 import org.ru.pso.objectives.ImageTranslationAndRotation;
 import org.ru.pso.PSO;
 import org.ru.pso.PSOConfig;
@@ -12,6 +13,7 @@ import org.ru.pso.Solution;
 import org.ru.pso.strategies.Placement;
 import org.ru.pso.strategies.Topology;
 import org.ru.vec.Vec3D;
+import org.ru.vec.Vec5D;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -59,9 +61,9 @@ public class Main {
         BufferedImage ref = reader.getImage("reference-8.bmp");
         BufferedImage cand = reader.getImage("candidate-8.bmp");
 
-        ImageTranslationAndRotation objectiveFunction = new ImageTranslationAndRotation(ref, cand, false);
+        ImageTRS objectiveFunction = new ImageTRS(ref, cand, false);
 
-        PSOConfig<Vec3D> config = new PSOConfig<>(
+        PSOConfig<Vec5D> config = new PSOConfig<>(
                 15,
                 0.75,
                 1.3,
@@ -69,11 +71,11 @@ public class Main {
                 Topology.COMPLETE,
                 Placement.RANDOM,
                 5.0,
-                new Vec3D(new double[]{10.0, 10.0, 3.0})
+                new Vec5D(new double[]{10.0, 10.0, 3.0, 1.0, 1.0})
         );
 
-        PSO<Vec3D> pso = new PSO<>(config, objectiveFunction::compute, Vec3D::new);
-        Solution<Vec3D> foundMinimum = pso.run();
+        PSO<Vec5D> pso = new PSO<>(config, objectiveFunction::compute, Vec5D::new);
+        Solution<Vec5D> foundMinimum = pso.run();
         System.out.printf("ref8 to cand8 was: %.05f%n", foundMinimum.fitnessScore());
 
         List<AbstractPixel> finalCandidatePoints = objectiveFunction.getLastSetOfCandidatePoints();
@@ -84,8 +86,6 @@ public class Main {
 
     public static void testDigitRecognition() throws InterruptedException, ExecutionException {
         ImgReader reader = new ImgReader("img/moderate-tests");
-
-        // TODO: More thorough inspection of EVERYTHING. Something is no right with these fitness scores
 
         ArrayList<BufferedImage> references = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
