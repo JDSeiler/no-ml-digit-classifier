@@ -30,15 +30,12 @@ public class ImageTRS extends ImageComparisonBase<Vec5D> {
         double xScaleFactor = transformationComponents[3];
         double yScaleFactor = transformationComponents[4];
 
-        System.out.println("!!!! Calling translate");
         List<AbstractPixel> shiftedPixels = this.translateAllPixels(shift, this.candidateImg);
 
         Vec2D centerOfMass = this.findCenterOfMass(shiftedPixels);
-        System.out.println("!!!! Calling scaling");
         List<AbstractPixel> shiftedAndScaledCandidate = this.scaleAllPixels(xScaleFactor, yScaleFactor, centerOfMass, shiftedPixels);
 
         Vec2D centerOfRotation = this.findCenterOfMass(shiftedAndScaledCandidate);
-        System.out.println("!!!! Calling rotation");
         List<AbstractPixel> fullyTransformedPixels = this.rotateAllPixelsAround(centerOfRotation, theta, shiftedAndScaledCandidate);
 
         // These are exposed PURELY for drawing code -- we need the coordinates of the points to draw diagrams
@@ -54,13 +51,9 @@ public class ImageTRS extends ImageComparisonBase<Vec5D> {
 
         Mapping mapping = new Mapping(n, supplies, demands, costs, 0.01);
 
-        // Penalize rotation and scaling. Scaling less than rotation.
-        // Rotation you can do more funky things with. Scaling is a bit more mundane.
+        // Keep penalizing rotation, maybe penalize scaling?
         double rotationPenalty = Math.abs(theta);
-        double result = mapping.getTotalCost() +
-                (rotationPenalty*rotationPenalty) +
-                Math.abs(xScaleFactor) +
-                Math.abs(yScaleFactor);
+        double result = mapping.getTotalCost() + (rotationPenalty*rotationPenalty);
 
         return result;
     }
