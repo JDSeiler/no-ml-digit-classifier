@@ -64,7 +64,13 @@ public class Particle<V extends FixedVector> {
         this.vel = (V) inertiaTerm.add(personalBestTerm).add(neighborhoodBestTerm);
     }
 
+    @Override
     public String toString() {
-        return String.format("Particle { pos: %s, vel: %s }", pos.toString(), vel.toString());
+        return "Particle{" +
+                "pos=" + pos +
+                ", vel=" + vel +
+                ", personalBestFitness=" + personalBestFitness +
+                ", personalBestLocation=" + personalBestLocation +
+                '}';
     }
 }

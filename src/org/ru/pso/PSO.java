@@ -76,7 +76,7 @@ public class PSO<V extends FixedVector> {
                 p.move();
                 double particleFitness = cost.apply(p.getPos());
 
-                if (particleFitness < bestSoFar) {
+                if (this.lessThan(particleFitness, bestSoFar, 0.000001)) {
                     double oldBest = bestSoFar;
                     bestSoFar = particleFitness;
                     locationOfGlobalBest = p.getPos();
@@ -87,7 +87,7 @@ public class PSO<V extends FixedVector> {
                     }
                 }
 
-                if (particleFitness < p.getPersonalBestFitness()) {
+                if (this.lessThan(particleFitness, p.getPersonalBestFitness(), 0.00001)) {
                     p.setPersonalBest(particleFitness);
                 }
             }
@@ -146,6 +146,13 @@ public class PSO<V extends FixedVector> {
         double interpolationFactor = Math.random()/Math.nextDown(1.0);
         // This formula is the linear interpolation (convex combination) between min and max.
         return min*(1.0-interpolationFactor) + max*interpolationFactor;
+    }
+
+    /**
+     * Returns true if `a` is less than `b` (within `epsilon` error)
+     */
+    private boolean lessThan(double a, double b, double epsilon) {
+        return a < (b + epsilon);
     }
 
     /*

@@ -187,12 +187,14 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
         double xShift = v.components()[0];
         double yShift = v.components()[1];
 
-        return new AbstractPixel(
+        AbstractPixel test = new AbstractPixel(
                 pixel.x() + xShift,
                 pixel.y() + yShift,
                 pixel.grayscaleValue(),
                 pixel.isDud()
         );
+        System.out.println(test);
+        return test;
     }
 
     /**
@@ -208,7 +210,8 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
         double newX = (x * Math.cos(theta)) - (y * Math.sin(theta));
         double newY = (x * Math.sin(theta)) + (y * Math.cos(theta));
 
-        return new AbstractPixel(newX, newY, pixel.grayscaleValue(), pixel.isDud());
+        AbstractPixel test = new AbstractPixel(newX, newY, pixel.grayscaleValue(), pixel.isDud());
+        return test;
     }
 
     protected Vec2D findCenterOfMass(List<AbstractPixel> img) {

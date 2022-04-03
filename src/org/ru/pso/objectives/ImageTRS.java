@@ -27,16 +27,18 @@ public class ImageTRS extends ImageComparisonBase<Vec5D> {
                 transformationComponents[1],
         });
         double theta = transformationComponents[2];
-        double xScaleFactor =  transformationComponents[3];
-        double yScaleFactor =  transformationComponents[3];
+        double xScaleFactor = transformationComponents[3];
+        double yScaleFactor = transformationComponents[4];
 
-
+        System.out.println("!!!! Calling translate");
         List<AbstractPixel> shiftedPixels = this.translateAllPixels(shift, this.candidateImg);
+
         Vec2D centerOfMass = this.findCenterOfMass(shiftedPixels);
-
+        System.out.println("!!!! Calling scaling");
         List<AbstractPixel> shiftedAndScaledCandidate = this.scaleAllPixels(xScaleFactor, yScaleFactor, centerOfMass, shiftedPixels);
-        Vec2D centerOfRotation = this.findCenterOfMass(shiftedAndScaledCandidate);
 
+        Vec2D centerOfRotation = this.findCenterOfMass(shiftedAndScaledCandidate);
+        System.out.println("!!!! Calling rotation");
         List<AbstractPixel> fullyTransformedPixels = this.rotateAllPixelsAround(centerOfRotation, theta, shiftedAndScaledCandidate);
 
         // These are exposed PURELY for drawing code -- we need the coordinates of the points to draw diagrams
@@ -55,7 +57,12 @@ public class ImageTRS extends ImageComparisonBase<Vec5D> {
         // Penalize rotation and scaling. Scaling less than rotation.
         // Rotation you can do more funky things with. Scaling is a bit more mundane.
         double rotationPenalty = Math.abs(theta);
-        return mapping.getTotalCost() + (rotationPenalty*rotationPenalty) + xScaleFactor + yScaleFactor;
+        double result = mapping.getTotalCost() +
+                (rotationPenalty*rotationPenalty) +
+                Math.abs(xScaleFactor) +
+                Math.abs(yScaleFactor);
+
+        return result;
     }
 
     private List<AbstractPixel> scaleAllPixels(double xScaleFactor, double yScaleFactor, Vec2D centerOfMass, List<AbstractPixel> img) {
@@ -69,6 +76,17 @@ public class ImageTRS extends ImageComparisonBase<Vec5D> {
     }
 
     private AbstractPixel scalePixel(double xScaleFactor, double yScaleFactor, AbstractPixel p) {
+        /* Multiplying the x or y values of a dud pixel can result in NaN through the following process:
+        1. MAX_VALUE * basically_anything = Infinity
+        2. Infinity * 0.0 = NaN
+
+        NaN causes all kinds of issues.
+        So, if a pixel is dud, just return it directly. Don't transform it.
+        */
+        if (p.isDud()) {
+            return p;
+        }
+
         return new AbstractPixel(
                 p.x() * xScaleFactor,
                 p.y() * yScaleFactor,
