@@ -6,7 +6,6 @@ import org.ru.vec.Vec2D;
 
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ImageTranslation extends ImageComparisonBase<Vec2D> {
     public ImageTranslation(BufferedImage referenceImage, BufferedImage candidateImage, boolean useSquaredEuclidean) {
@@ -14,7 +13,7 @@ public class ImageTranslation extends ImageComparisonBase<Vec2D> {
     }
 
     public double compute(Vec2D v) {
-        List<AbstractPixel> adjustedCandidate = this.translateBy(v, this.candidateImg);
+        List<AbstractPixel> adjustedCandidate = this.translateAllPixels(v, this.candidateImg);
 
         int n = this.refImg.size();
         double[] supplies = this.getGrayscaleArray(this.refImg);
@@ -22,16 +21,5 @@ public class ImageTranslation extends ImageComparisonBase<Vec2D> {
         double[][] costs = this.computeCostMatrix(this.refImg, adjustedCandidate);
         Mapping mapping = new Mapping(n, supplies, demands, costs, 0.01);
         return mapping.getTotalCost();
-    }
-
-    private List<AbstractPixel> translateBy(Vec2D v, List<AbstractPixel> img) {
-        double xShift = v.components()[0];
-        double yShift = v.components()[1];
-        return img.stream().map(oldPixel -> new AbstractPixel(
-                oldPixel.x() + xShift,
-                oldPixel.y() + yShift,
-                oldPixel.grayscaleValue(),
-                oldPixel.isDud()
-        )).collect(Collectors.toList());
     }
 }
