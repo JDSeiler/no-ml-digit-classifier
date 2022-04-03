@@ -82,6 +82,7 @@ public class ImageTRS extends ImageComparisonBase<Vec5D> {
 
         NaN causes all kinds of issues.
         So, if a pixel is dud, just return it directly. Don't transform it.
+        TODO: Probably should avoid ALL computation with dud pixels, just to be safe?
         */
         if (p.isDud()) {
             return p;

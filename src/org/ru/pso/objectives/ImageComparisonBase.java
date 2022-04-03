@@ -210,8 +210,7 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
         double newX = (x * Math.cos(theta)) - (y * Math.sin(theta));
         double newY = (x * Math.sin(theta)) + (y * Math.cos(theta));
 
-        AbstractPixel test = new AbstractPixel(newX, newY, pixel.grayscaleValue(), pixel.isDud());
-        return test;
+        return new AbstractPixel(newX, newY, pixel.grayscaleValue(), pixel.isDud());
     }
 
     protected Vec2D findCenterOfMass(List<AbstractPixel> img) {
