@@ -187,14 +187,12 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
         double xShift = v.components()[0];
         double yShift = v.components()[1];
 
-        AbstractPixel test = new AbstractPixel(
+        return new AbstractPixel(
                 pixel.x() + xShift,
                 pixel.y() + yShift,
                 pixel.grayscaleValue(),
                 pixel.isDud()
         );
-        System.out.println(test);
-        return test;
     }
 
     /**
