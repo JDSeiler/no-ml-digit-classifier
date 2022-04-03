@@ -59,7 +59,7 @@ public class PSO<V extends FixedVector> {
                 return new Solution<>(bestSoFar, locationOfGlobalBest);
             }
 
-            if (durationBestUnchanged >= 1_000) {
+            if (durationBestUnchanged >= 500) {
                 System.out.printf("Global best has stopped converging after %d iterations.%n", i);
                 return new Solution<>(bestSoFar, locationOfGlobalBest);
             }
