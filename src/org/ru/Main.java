@@ -5,6 +5,7 @@ import org.ru.concurrent.ThreadableImageClassification;
 import org.ru.drawing.PointCloud;
 import org.ru.img.AbstractPixel;
 import org.ru.img.ImgReader;
+import org.ru.pso.OutputWriter;
 import org.ru.pso.objectives.ImageTRS;
 import org.ru.pso.objectives.ImageTranslationAndRotation;
 import org.ru.pso.PSO;
@@ -44,6 +45,7 @@ public class Main {
     }
 
     public static void testPair() throws IOException {
+        OutputWriter out = new OutputWriter("temp/results.txt");
         /*
         * Candidate 2:
         * - Reference 1
@@ -52,6 +54,8 @@ public class Main {
         * Candidate 5:
         * - Reference 6
         * - Reference 5
+        * After adding scaling, r5-c5 was 0.77145
+        * r6-c5 was 0.95134
         *
         * Candidate 8:
         * - Reference 3
@@ -61,6 +65,8 @@ public class Main {
         BufferedImage ref = reader.getImage("reference-8.bmp");
         BufferedImage cand = reader.getImage("candidate-8.bmp");
 
+        // Remember that if you scale by a negative number you can flip images through axis.
+        // Just like a 90 degree rotation... Neat!
         ImageTRS objectiveFunction = new ImageTRS(ref, cand, false);
 
         PSOConfig<Vec5D> config = new PSOConfig<>(
@@ -77,11 +83,17 @@ public class Main {
         PSO<Vec5D> pso = new PSO<>(config, objectiveFunction::compute, Vec5D::new);
         Solution<Vec5D> foundMinimum = pso.run();
         System.out.printf("ref8 to cand8 was: %.05f%n", foundMinimum.fitnessScore());
+        System.out.println(foundMinimum.solution());
+
+        out.write("ref8 to cand8:");
+        out.write(foundMinimum.toString());
 
         List<AbstractPixel> finalCandidatePoints = objectiveFunction.getLastSetOfCandidatePoints();
         List<AbstractPixel> referencePoints = objectiveFunction.getLastSetOfReferencePoints();
 
         PointCloud.drawDigitComparison(referencePoints, "ref8.txt", finalCandidatePoints, "cand8.txt");
+
+        out.close();
     }
 
     public static void testDigitRecognition() throws InterruptedException, ExecutionException {
