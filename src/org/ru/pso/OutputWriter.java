@@ -33,7 +33,12 @@ public class OutputWriter {
         this.outFile.close();
     }
 
-    public void write(String line) {
+    /**
+     * Adds the line to a file, appending a newline
+     * @param line the line to add to this OutpuWriter
+     */
+    public void writeLine(String line) {
         this.outFile.println(line);
+        this.outFile.flush();
     }
 }
