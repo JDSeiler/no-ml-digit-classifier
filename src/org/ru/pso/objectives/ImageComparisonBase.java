@@ -14,12 +14,12 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
     protected final List<AbstractPixel> candidateImg;
     protected boolean useSquaredEuclidean = false;
 
-    public ImageComparisonBase(BufferedImage referenceImage, BufferedImage candidateImage, boolean useSquaredEuclidean) {
+    public ImageComparisonBase(BufferedImage referenceImage, BufferedImage candidateImage, double threshold, boolean useSquaredEuclidean) {
         this.refImg = this.normalizeAbstractPixels(
-                ImgReader.convertToAbstractPixels(referenceImage, 1.0)
+                ImgReader.convertToAbstractPixels(referenceImage, threshold)
         );
         this.candidateImg = this.normalizeAbstractPixels(
-                ImgReader.convertToAbstractPixels(candidateImage, 1.0)
+                ImgReader.convertToAbstractPixels(candidateImage, threshold)
         );
 
         this.useSquaredEuclidean = useSquaredEuclidean;
@@ -33,6 +33,11 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
             throw new RuntimeException("Reference image and candidate image must have the same number of abstract pixels in them!");
         }
     }
+
+    public ImageComparisonBase(BufferedImage referenceImage, BufferedImage candidateImage, boolean useSquaredEuclidean) {
+        this(referenceImage, candidateImage, 1.0, useSquaredEuclidean);
+    }
+
 
     abstract double compute(V v);
 

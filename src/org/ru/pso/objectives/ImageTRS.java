@@ -16,8 +16,12 @@ public class ImageTRS extends ImageComparisonBase<Vec5D> {
     private List<AbstractPixel> lastSetOfReferencePoints = null;
 
 
+    public ImageTRS(BufferedImage referenceImage, BufferedImage candidateImage, double threshold, boolean useSquaredEuclidean) {
+        super(referenceImage, candidateImage, threshold, useSquaredEuclidean);
+    }
+
     public ImageTRS(BufferedImage referenceImage, BufferedImage candidateImage, boolean useSquaredEuclidean) {
-        super(referenceImage, candidateImage, useSquaredEuclidean);
+        super(referenceImage, candidateImage, 1.0, useSquaredEuclidean);
     }
 
     public double compute(Vec5D v) {
@@ -49,13 +53,14 @@ public class ImageTRS extends ImageComparisonBase<Vec5D> {
 
         double[][] costs = this.computeCostMatrix(this.refImg, fullyTransformedPixels);
 
-        Mapping mapping = new Mapping(n, supplies, demands, costs, 0.01);
+        Mapping mapping = new Mapping(n, supplies, demands, costs, 0.10);
 
         // Keep penalizing rotation, maybe penalize scaling?
         double rotationPenalty = Math.abs(theta);
-        double result = mapping.getTotalCost() + (rotationPenalty*rotationPenalty);
+        double xScalingPenalty = Math.abs(1.0 - Math.abs(xScaleFactor));
+        double yScalingPenalty = Math.abs(1.0 - Math.abs(yScaleFactor));
 
-        return result;
+        return mapping.getTotalCost() + (rotationPenalty*rotationPenalty) + xScalingPenalty + yScalingPenalty;
     }
 
     private List<AbstractPixel> scaleAllPixels(double xScaleFactor, double yScaleFactor, Vec2D centerOfMass, List<AbstractPixel> img) {
@@ -82,8 +87,8 @@ public class ImageTRS extends ImageComparisonBase<Vec5D> {
         }
 
         return new AbstractPixel(
-                p.x() * xScaleFactor,
-                p.y() * yScaleFactor,
+                p.x() * Math.abs(xScaleFactor),
+                p.y() * Math.abs(yScaleFactor),
                 p.grayscaleValue(),
                 p.isDud()
         );
