@@ -7,19 +7,20 @@ import org.ru.img.AbstractPixel;
 import org.ru.img.ImgReader;
 import org.ru.pso.OutputWriter;
 import org.ru.pso.objectives.ImageTRS;
-import org.ru.pso.objectives.ImageTranslationAndRotation;
 import org.ru.pso.PSO;
 import org.ru.pso.PSOConfig;
 import org.ru.pso.Solution;
 import org.ru.pso.strategies.Placement;
 import org.ru.pso.strategies.Topology;
-import org.ru.vec.Vec3D;
 import org.ru.vec.Vec5D;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,6 +43,42 @@ public class Main {
         double timeInMs = (end - start) / 1_000_000.0;
         double timeInSec = timeInMs / 1_000.0;
         System.out.printf("PSO took %.2f ms (%.5f s)", timeInMs, timeInSec);
+    }
+
+    public static void runFullTests() throws IOException, ExecutionException, InterruptedException {
+        // This is the image reader for the heatmaps.
+        ImgReader referenceImages = new ImgReader();
+        ArrayList<BufferedImage> heatmaps = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            heatmaps.add(referenceImages.getImage(String.format("heatmap-%d.bmp", i)));
+        }
+
+        for (int candidateLabel = 0; candidateLabel< 10; candidateLabel++) {
+            File locationOfImages = new File(String.format("img/mnist/%d", candidateLabel));
+            ImgReader candidateReader = new ImgReader(String.format("img/mnist/%d", candidateLabel));
+            List<String> testImages = Arrays.stream(Objects.requireNonNull(locationOfImages.listFiles())).map(File::getName).toList();
+
+            ExecutorService pool = Executors.newFixedThreadPool(10);
+
+            for (String candidate : testImages) {
+                BufferedImage candidateImage = candidateReader.getImage(candidate);
+                // TODO - Each comparison needs to return enough data so that I can record all the data I want *after*
+                // every comparison is done.
+                ArrayList<ImageClassificationResult<Vec5D>> results = classifyThisCandidate(candidateLabel, candidateImage, heatmaps, pool);
+
+                int classifiedAs = -1;
+                double bestFitnessScore = Double.MAX_VALUE;
+
+                for (ImageClassificationResult<Vec5D> res : results) {
+                    // Here is where we can output the individual comparisons to a file. EZ PZ
+                    if (res.result().fitnessScore() < bestFitnessScore) {
+                        bestFitnessScore = res.result().fitnessScore();
+                        classifiedAs = res.referenceDigit();
+                    }
+                }
+                // At this point we can output the classification
+            }
+        }
     }
 
     public static void testPair() throws IOException {
@@ -96,16 +133,12 @@ public class Main {
         out.close();
     }
 
-    public static void testDigitRecognition() throws InterruptedException, ExecutionException {
-        ImgReader reader = new ImgReader("img/moderate-tests");
-
-        ArrayList<BufferedImage> references = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            references.add(reader.getImage(String.format("reference-%d.bmp", i)));
-        }
-
-        ExecutorService pool = Executors.newFixedThreadPool(10);
-
+    public static ArrayList<ImageClassificationResult<Vec5D>> classifyThisCandidate(
+            int candidateLabel,
+            BufferedImage candidateImage,
+            ArrayList<BufferedImage> references,
+            ExecutorService pool
+    ) throws InterruptedException, ExecutionException {
         /*
         * It might feel kind of strange to put the candidate in the outer loop and then the reference.
         * Think of it this way:
@@ -118,35 +151,20 @@ public class Main {
         * Just remember this convention: The Candidate is ALWAYS ALWAYS ALWAYS the image that moves.
         * The reference image is ALWAYS stationary.
         * */
+        ArrayList<ImageClassificationResult<Vec5D>> answers = new ArrayList<>();
+        ArrayList<ThreadableImageClassification> comparisons = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
-            System.out.printf("Candidate: %d%n", i);
-            BufferedImage cand = reader.getImage(String.format("candidate-%d.bmp", i));
+            BufferedImage ref = references.get(i);
 
-            ArrayList<ThreadableImageClassification> comparisons = new ArrayList<>();
-            ArrayList<ImageClassificationResult<Vec3D>> answers = new ArrayList<>();
-
-            for (int j = 0; j < 10; j++) {
-                BufferedImage ref = references.get(j);
-
-                ThreadableImageClassification comparison = new ThreadableImageClassification(j, ref, i, cand);
-                comparisons.add(comparison);
-            }
-
-            List<Future<ImageClassificationResult<Vec3D>>> futureResults = pool.invokeAll(comparisons);
-            for (Future<ImageClassificationResult<Vec3D>> ans : futureResults) {
-                answers.add(ans.get());
-            }
-
-            for (ImageClassificationResult<Vec3D> ans : answers) {
-                System.out.printf(
-                        "Similarity between %d and %d : %.5f%n",
-                        ans.candidateDigit(),
-                        ans.referenceDigit(),
-                        ans.result().fitnessScore());
-            }
+            ThreadableImageClassification comparison = new ThreadableImageClassification(i, ref, candidateLabel, candidateImage);
+            comparisons.add(comparison);
         }
 
-        pool.shutdown();
+        List<Future<ImageClassificationResult<Vec5D>>> futureResults = pool.invokeAll(comparisons);
+        for (Future<ImageClassificationResult<Vec5D>> ans : futureResults) {
+            answers.add(ans.get());
+        }
+        return answers;
     }
 }
