@@ -32,7 +32,7 @@ public class Main {
         long start = System.nanoTime();
 
         try {
-            testPair();
+            runFullTests();
         } catch(Exception e) {
             System.out.println("Something went wrong!");
             System.err.println(e);
@@ -46,65 +46,104 @@ public class Main {
     }
 
     public static void runFullTests() throws IOException, ExecutionException, InterruptedException {
-        // This is the image reader for the heatmaps.
-        ImgReader referenceImages = new ImgReader();
-        ArrayList<BufferedImage> heatmaps = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            heatmaps.add(referenceImages.getImage(String.format("heatmap-%d.bmp", i)));
-        }
+        // 0: Set up universal resources that we want to be able to clean up.
+        OutputWriter comparisons = new OutputWriter("temp/comparisons.csv");
+        OutputWriter classifications = new OutputWriter("temp/classifications.csv");
+        ExecutorService pool = Executors.newFixedThreadPool(10);
 
-        for (int candidateLabel = 0; candidateLabel< 10; candidateLabel++) {
-            File locationOfImages = new File(String.format("img/mnist/%d", candidateLabel));
-            ImgReader candidateReader = new ImgReader(String.format("img/mnist/%d", candidateLabel));
-            List<String> testImages = Arrays.stream(Objects.requireNonNull(locationOfImages.listFiles())).map(File::getName).toList();
+        try {
+            comparisons.writeLine("ref_label,cand_label,cand_img_id,fitness,x_shift,y_shift,rotation,x_scale,y_scale,iterations");
+            classifications.writeLine("cand_label,cand_img_id,classified_as,0-fitness,1-fitness,2-fitness,3-fitness,4-fitness,5-fitness,6-fitness,7-fitness,8-fitness,9-fitness");
 
-            ExecutorService pool = Executors.newFixedThreadPool(10);
-
-            for (String candidate : testImages) {
-                BufferedImage candidateImage = candidateReader.getImage(candidate);
-                // TODO - Each comparison needs to return enough data so that I can record all the data I want *after*
-                // every comparison is done.
-                ArrayList<ImageClassificationResult<Vec5D>> results = classifyThisCandidate(candidateLabel, candidateImage, heatmaps, pool);
-
-                int classifiedAs = -1;
-                double bestFitnessScore = Double.MAX_VALUE;
-
-                for (ImageClassificationResult<Vec5D> res : results) {
-                    // Here is where we can output the individual comparisons to a file. EZ PZ
-                    if (res.result().fitnessScore() < bestFitnessScore) {
-                        bestFitnessScore = res.result().fitnessScore();
-                        classifiedAs = res.referenceDigit();
-                    }
-                }
-                // At this point we can output the classification
+            // 1: Load the heatmap reference images
+            ImgReader referenceImages = new ImgReader("img/heatmaps");
+            ArrayList<BufferedImage> heatmaps = new ArrayList<>();
+            for (int i = 0; i < 10; i++) {
+                heatmaps.add(referenceImages.getImage(String.format("digit-%d-heatmap.bmp", i)));
             }
+
+            // Each folder corresponds to a set of digits, all of which are the same type.
+            // 2: Classify a batch of digits
+            for (int candidateLabel = 0; candidateLabel< 10; candidateLabel++) {
+                File locationOfImages = new File(String.format("img/mnist-tests-1/%d", candidateLabel));
+                ImgReader candidateReader = new ImgReader(String.format("img/mnist-tests-1/%d", candidateLabel));
+                List<String> testImages = Arrays.stream(Objects.requireNonNull(locationOfImages.listFiles())).map(File::getName).toList();
+
+
+                // 3: Classify each candidate in the batch
+                for (String candidateImageName : testImages) {
+                    System.out.printf("Classifying %s%n", candidateImageName);
+                    BufferedImage candidateImage = candidateReader.getImage(candidateImageName);
+                    // This code uses 10 threads to classify each digit against the same set of heatmap references.
+                    ArrayList<ImageClassificationResult<Vec5D>> results = classifyThisCandidate(candidateLabel, candidateImage, heatmaps, pool);
+
+                    int classifiedAs = -1;
+                    double bestFitnessScore = Double.MAX_VALUE;
+                    double[] allScores = new double[10];
+
+                    // 4: Record each comparison and see which one was best.
+                    for (int i = 0; i < 10; i++) {
+                        ImageClassificationResult<Vec5D> res = results.get(i);
+                        double[] solVec = res.result().solution().components();
+
+                        comparisons.writeLine(String.format(
+                                "%d,%d,%s,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%d",
+                                res.referenceDigit(),
+                                res.candidateDigit(),
+                                candidateImageName,
+                                res.result().fitnessScore(),
+                                solVec[0],
+                                solVec[1],
+                                solVec[2],
+                                solVec[3],
+                                solVec[4],
+                                res.iterations()
+                        ));
+
+                        if (res.result().fitnessScore() < bestFitnessScore) {
+                            bestFitnessScore = res.result().fitnessScore();
+                            classifiedAs = res.referenceDigit();
+                        }
+                        allScores[i] = res.result().fitnessScore();
+                    }
+
+                    // 5: Record the classification of this digit.
+                    classifications.writeLine(String.format(
+                            "%d,%s,%d,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f",
+                            candidateLabel,
+                            candidateImageName,
+                            classifiedAs,
+                            allScores[0],
+                            allScores[1],
+                            allScores[2],
+                            allScores[3],
+                            allScores[4],
+                            allScores[5],
+                            allScores[6],
+                            allScores[7],
+                            allScores[8],
+                            allScores[9]
+                    ));
+                }
+            }
+        } finally {
+            // No matter what happens, clean up your file handles!
+            comparisons.close();
+            classifications.close();
+            pool.shutdownNow();
         }
     }
 
     public static void testPair() throws IOException {
-        OutputWriter out = new OutputWriter("temp/results.txt");
-        /*
-        * Candidate 2:
-        * - Reference 1
-        * - Reference 2
-        *
-        * Candidate 5:
-        * - Reference 6
-        * - Reference 5
-        * After adding scaling, r5-c5 was 0.77145
-        * r6-c5 was 0.95134
-        *
-        * Candidate 8:
-        * - Reference 3
-        * - Reference 8
-        * */
-        ImgReader reader = new ImgReader("img/moderate-tests");
-        BufferedImage ref = reader.getImage("reference-8.bmp");
-        BufferedImage cand = reader.getImage("candidate-8.bmp");
+        ImgReader candidateReader = new ImgReader("img/mnist-tests-1/0");
+        ImgReader refReader = new ImgReader("img/heatmaps");
+
+        BufferedImage cand = candidateReader.getImage("d0-0027.bmp");
+        BufferedImage ref = refReader.getImage("digit-0-heatmap.bmp");
 
         // Remember that if you scale by a negative number you can flip images through axis.
         // Just like a 90 degree rotation... Neat!
-        ImageTRS objectiveFunction = new ImageTRS(ref, cand, false);
+        ImageTRS objectiveFunction = new ImageTRS(ref, cand, 0.60, false);
 
         PSOConfig<Vec5D> config = new PSOConfig<>(
                 15,
@@ -119,18 +158,13 @@ public class Main {
 
         PSO<Vec5D> pso = new PSO<>(config, objectiveFunction::compute, Vec5D::new);
         Solution<Vec5D> foundMinimum = pso.run();
-        System.out.printf("ref8 to cand8 was: %.05f%n", foundMinimum.fitnessScore());
+        System.out.printf("Fitness Score was: %.05f%n", foundMinimum.fitnessScore());
         System.out.println(foundMinimum.solution());
-
-        out.write("ref8 to cand8:");
-        out.write(foundMinimum.toString());
 
         List<AbstractPixel> finalCandidatePoints = objectiveFunction.getLastSetOfCandidatePoints();
         List<AbstractPixel> referencePoints = objectiveFunction.getLastSetOfReferencePoints();
 
-        PointCloud.drawDigitComparison(referencePoints, "ref8.txt", finalCandidatePoints, "cand8.txt");
-
-        out.close();
+        PointCloud.drawDigitComparison(referencePoints, "digit-0-heatmap.txt", finalCandidatePoints, "cand0.txt");
     }
 
     public static ArrayList<ImageClassificationResult<Vec5D>> classifyThisCandidate(

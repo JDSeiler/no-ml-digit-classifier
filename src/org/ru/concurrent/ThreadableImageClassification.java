@@ -27,7 +27,7 @@ public class ThreadableImageClassification implements Callable<ImageClassificati
 
     @Override
     public ImageClassificationResult<Vec5D> call() throws Exception {
-        ImageTRS objectiveFunction = new ImageTRS(this.reference, this.candidate, false);
+        ImageTRS objectiveFunction = new ImageTRS(this.reference, this.candidate, 0.6, false);
 
         PSOConfig<Vec5D> config = new PSOConfig<>(
                 15,
@@ -37,11 +37,11 @@ public class ThreadableImageClassification implements Callable<ImageClassificati
                 Topology.COMPLETE,
                 Placement.RANDOM,
                 5.0,
-                new Vec5D(new double[]{10.0, 10.0, 3.0})
+                new Vec5D(new double[]{10.0, 10.0, 3.0, 1.0, 1.0})
         );
 
         PSO<Vec5D> pso = new PSO<>(config, objectiveFunction::compute, Vec5D::new);
         Solution<Vec5D> foundMinimum = pso.run();
-        return new ImageClassificationResult<>(this.referenceId, this.candidateId, foundMinimum);
+        return new ImageClassificationResult<>(this.referenceId, this.candidateId, foundMinimum, pso.getLastSolutionIterations());
     }
 }
