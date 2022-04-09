@@ -18,6 +18,7 @@ public class PSO<V extends FixedVector> {
     // directly. Which Java cannot do because its generic system
     // is implemented with type erasure.
     private final Supplier<V> vectorFactory;
+    private int lastSolutionIterations = 0;
 
     public PSO(PSOConfig<V> config, Function<V, Double> objectiveFunction, Supplier<V> vectorFactory) {
         this.swarm = new ArrayList<>(config.swarmSize());
@@ -45,22 +46,32 @@ public class PSO<V extends FixedVector> {
     }
 
     public Solution<V> run() {
+        // Make sure to respond to interrupts.
+        // If a PSO instance is interrupted, we're probably shutting everything down "barely gracefully"
+        // So just return null. The biggest thing is to make sure the thread isn't hanging.
+        if (Thread.interrupted()) {
+            return null;
+        }
+
+
         double bestSoFar = Double.MAX_VALUE;
         V locationOfGlobalBest = null;
 
         boolean bestChangedThisIteration = false;
         int durationBestUnchanged = 0; // measured in iterations
 
-        for (int i = 0; i < 10_000; i++) {
+        for (int i = 0; i < 1_000; i++) {
             bestChangedThisIteration = false;
 
             if (Math.abs(bestSoFar) <= 0.0000001) {
                 System.out.printf("Found minimum in %d iterations.%n", i);
+                lastSolutionIterations = i;
                 return new Solution<>(bestSoFar, locationOfGlobalBest);
             }
 
-            if (durationBestUnchanged >= 500) {
+            if (durationBestUnchanged >= 150) {
                 System.out.printf("Global best has stopped converging after %d iterations.%n", i);
+                lastSolutionIterations = i;
                 return new Solution<>(bestSoFar, locationOfGlobalBest);
             }
 
@@ -76,18 +87,18 @@ public class PSO<V extends FixedVector> {
                 p.move();
                 double particleFitness = cost.apply(p.getPos());
 
-                if (this.lessThan(particleFitness, bestSoFar, 0.000001)) {
+                if (particleFitness < bestSoFar) {
                     double oldBest = bestSoFar;
                     bestSoFar = particleFitness;
                     locationOfGlobalBest = p.getPos();
 
-                    if (Math.abs(bestSoFar - oldBest) > 0.00001) {
+                    if (Math.abs(bestSoFar - oldBest) > 0.0001) {
                         bestChangedThisIteration = true;
                         durationBestUnchanged = 0;
                     }
                 }
 
-                if (this.lessThan(particleFitness, p.getPersonalBestFitness(), 0.00001)) {
+                if (particleFitness < p.getPersonalBestFitness()) {
                     p.setPersonalBest(particleFitness);
                 }
             }
@@ -104,6 +115,8 @@ public class PSO<V extends FixedVector> {
                 durationBestUnchanged++;
             }
         }
+        System.out.println("PSO did not fully converge within 1_000 iterations.");
+        lastSolutionIterations = 1_000;
         return new Solution<>(bestSoFar, locationOfGlobalBest);
     }
 
@@ -148,26 +161,7 @@ public class PSO<V extends FixedVector> {
         return min*(1.0-interpolationFactor) + max*interpolationFactor;
     }
 
-    /**
-     * Returns true if `a` is less than `b` (within `epsilon` error)
-     */
-    private boolean lessThan(double a, double b, double epsilon) {
-        return a < (b + epsilon);
+    public int getLastSolutionIterations() {
+        return lastSolutionIterations;
     }
-
-    /*
-    * A good objective function to start testing with:
-    * [(x+1.1sin(x))^2 + (y+1.1cos(y))^2] / 10
-    *
-    * The derivation is as follows:
-    * x^2 + y^2 gives a 3D parabola. A parabola rotated around the y-axis.
-    *
-    * Adding n*sin(x) and m*cos(y) makes the sides of the parabola "wavy".
-    * It creates local minimums all along the sides of the "bowl". The larger
-    * n and m are the more pronounced the minimums are. If n and m are 1, there
-    * are no minimums. The side of the bowl just briefly flattens out before continuing
-    * down. So keeping the scalars at 1 to start would be an easy first test.
-    *
-    * The final division by 10 is just to stop the function from growing too fast.
-    * */
 }
