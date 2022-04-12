@@ -85,6 +85,7 @@ public class GTTransport {
         //The difference is because of how both languages store arrays (column vs. row order)
         // Transposing swaps things over the diagonal. So to get the same exact edge you
         // must switch the order of i and j when you index.
+        // This is done because C is NOT symmetric!
         CBA = transpose(C);
         CAB = C;
 
@@ -99,6 +100,7 @@ public class GTTransport {
         }
 
         //Dual weights for B and A
+        // Java automatically zeros arrays, so the dual weights are already set up at declaration.
         y = new int[2*n];
 
         //Remaining "unmatched" supply or demand.
@@ -112,6 +114,7 @@ public class GTTransport {
                 // The residual capacity of a forward edge: (b, a) is the minimum between the remaining supply at b
                 // Or the unsatisfied demand at a.
                 capacityBA[i][j] = Math.min(deficiencyB[i], deficiencyA[j]);
+                // We don't set the capacity of backwards edges because nothing is matched.
             }
         }
 
@@ -137,8 +140,8 @@ public class GTTransport {
             boolean[] finalDist = new boolean[2*n];
             Arrays.fill(lv, Integer.MAX_VALUE);
             for (int i = 0; i < n; i++) {
-                // This is part of the algorithm, we connect S to every free vertex of B
-                // with a 0 cost edge. So the ith vertex of B trivially has l_v of 0.
+                // We connect S to every free vertex of B with a 0 cost edge.
+                // So any free vertex of B trivially has an lv of 0.
                 if (bFree[i]) {
                     lv[i] = 0;
                 }
@@ -153,6 +156,7 @@ public class GTTransport {
                 // explores the cheapest path first so this vertex (represented by minIndex)
                 // is the place we should explore from next.
                 int minDist = Integer.MAX_VALUE;
+                // minIndex is just for tracking the identity of the node we found.
                 int minIndex = -1; //Placeholder
                 for (int v = 0; v < 2*n; v++) {
                     if (lv[v] < minDist && !finalDist[v]) {
@@ -160,6 +164,7 @@ public class GTTransport {
                         minIndex = v;
                     }
                 }
+                // After we've explored from a place, we've fully processed it.
                 finalDist[minIndex] = true;
 
                 //From the for loop condition, the early breaking out upon
@@ -178,7 +183,7 @@ public class GTTransport {
                     for (int a = 0; a < n; a++) {
                         // If there is no capacity, that means one of the incident
                         // vertices has no supply/demand. In which case we don't
-                        // bother exploring through thsi vertex because that will
+                        // bother exploring through this vertex because that will
                         // make the bottleneck capacity 0.
                         if (capacityBA[minIndex][a] > 0) {
                             int aIndex = a + n;
@@ -253,10 +258,13 @@ public class GTTransport {
             //These values persist throughout all partial DFS searches this phase
             vertexVisited = new int[2*n];
             for (int i = 0; i < n; i++) {
-                // TODO: This sentinel value kind of confuses me.
+                // This sentinel value is so that in findAP, when the start of the "range" is computed,
+                // it will give vertices in A.
                 vertexVisited[i] = n-1;
             }
             for (int i = 0; i < n; i++) {
+                // This value is there for a similar reason. In findAP when we compute the range of values
+                // to explore we're going to get vertices in B.
                 vertexVisited[i + n] = -1;
             }
 
@@ -267,7 +275,8 @@ public class GTTransport {
 
                     // Clearly if we've checked every last vertex in the array (the array only has 2*n elements)
                     // then we've DFS'd everything and can stop. But that assumes we visit vertices in strictly increasing
-                    // order of index?
+                    // order of index. Which findAP ensures.
+                    // We can also stop if there's no more unmatched supply at this vertex.
                     while (deficiencyB[vertex] > 0 && vertexVisited[vertex] < 2*n - 1) {
                         ArrayList<Integer> ap = null;
 
@@ -351,7 +360,7 @@ public class GTTransport {
                         * This reintroduces those k units of demand. A fundamentally identical argument can be used
                         * for internal vertices that live in B, just swap "supply" for "demand".
                         *
-                        * The only vertices that do not have their supply/demand symmetrically change like this are
+                        * The only vertices that do not have their supply/demand symmetrically changed like this are
                         * the vertices on the ends. At the end, we end up with less un-transported supply from the
                         * start vertex B. And less unsatisfied demand at the end vertex A.
                         *
@@ -386,12 +395,14 @@ public class GTTransport {
         finalCapacity = new int[2*n][2*n];
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                // The edges are "backwards" in the residual graph. An edge from A -> B represents
-                // how much flow we've matched (are transporting) across the undirected edge a,b
-                // An edge from B -> A represents how much flow we are not transporting (this breaks down a bit?
-                // maybe I don't understand it?) along the undirected edge a,b
-                // Point being, I have a hunch this is just about mapping the residual graph back to something
-                // more user friendly.
+                /*
+                The arrays used in this program are NxN. They can encode either the forward edges or the backward
+                edges easily, but not both. But we only want to return one thing! So, we use a 2Nx2N matrix where
+                the first n vertices of a row/column are in B. And the last n vertices of a row or column are in A.
+
+                We really get a matrix where only the top right and bottom left corners have real meaning.
+                row < n must be paired with col >= n and row >= n must be paired with col < n
+                */
                 finalCapacity[i + n][j] = capacityAB[i][j];
                 finalCapacity[i][j + n] = capacityBA[i][j];
             }
@@ -426,8 +437,9 @@ public class GTTransport {
             for (int i = rangeStart; i < rangeEnd; i++) {
                 // This stops us from visiting this vertex again when we backtrack.
                 vertexVisited[end] = i;
+                //current vertex is type B
                 if (end < n) {
-                    //current vertex is type B
+                    // CBA is NxN, so we have to "normalize" `i`, which is an index into a 2*n array.
                     int a = i - n;
                     // If the edge is admissible and there is residual capacity (the edge is useful at all)
                     if (CBA[end][a] + 1 - y[end] - y[a + n] == 0 && capacityBA[end][a] > 0) {

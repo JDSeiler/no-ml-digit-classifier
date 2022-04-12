@@ -46,15 +46,15 @@ public class Mapping {
         int[][] scaledC = new int[n][n];
         int[] scaledDemands = new int[n];
         int[] scaledSupplies = new int[n];
-        // In the paper alpha simplifies to 4nC / delta. `n` is added when the demands/supplies are scaled.
-        // not in the definition of alpha.
+        // In the paper, alpha simplifies to 4nC / delta. `n` is added when the demands/supplies are scaled.
+        // It is not included in the definition of alpha.
         double alpha = 4.*maxCost / delta;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                // TODO: In the paper the costs are scaled by 4/delta? But alpha != 4/delta
+                // TODO: In the paper the costs are scaled by 4/delta? (page 6) But alpha != 4/delta
                 scaledC[i][j] = (int)(C[i][j] * alpha);
             }
-            // Ahh here's where the n is factored in.
+            // Recall from earlier that `n` was not added to the definition of alpha. This is where it's added
             scaledDemands[i] = (int)(Math.ceil(demands[i] * alpha * n));
             scaledSupplies[i] = (int)(supplies[i] * alpha * n);
         }
@@ -85,8 +85,11 @@ public class Mapping {
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                // TODO: I get a little lost in the indexing here. But just trusting
-                // that scaledFlow[i+n][j] is the flow along that edge, I understand the division.
+                // Line 93 mirrors the following code from GTTransport:
+                // finalCapacity[i + n][j] = capacityAB[i][j];
+                // Thus, flow from i -> j is the capacity (satisfied demand) from A to B (j to i)
+
+                // Lines 58 and 59 scale by alpha * n, now we divide it out.
                 flow[i][j] = scaledFlow[i + n][j] / (n * alpha);
                 residualSupply[j] -= flow[i][j];
                 residualDemand[i] -= flow[i][j];
@@ -97,6 +100,8 @@ public class Mapping {
         for (int j = 0; j < n; j++) {
             // We are looking for all vertices of A which are "over-saturated"
             for (int i = 0; residualDemand[j] < 0 && i < n; i++) {
+                // For this edge, we can either fix all the residual demand, or push back
+                // all the flow on the edge. Whichever is smaller.
                 double reduction = Double.min(-residualDemand[j], flow[j][i]);
                 flow[j][i] -= reduction;
                 residualDemand[j] += reduction;
