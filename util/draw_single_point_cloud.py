@@ -13,21 +13,36 @@ def read_points(file_name, color):
 
     xs = []
     ys = []
+
+    raw_alphas = []
     cs = []
 
     num_lines_metadata = int(lines[0].split(' ')[1].strip())
     points = lines[num_lines_metadata+2::]
     for point in points:
-        x, y = list(map(float, point.split(', ')))
+        # Use grayscale value as alpha
+        x, y, a = list(map(float, point.split(', ')))
         xs.append(x)
         ys.append(y)
-        cs.append(color)
+        raw_alphas.append(a)
+
+    # https://stackoverflow.com/a/5732390
+    # this SHOULD be mapping the range of input grayscale values (which sum to 1
+    # and are thus tiny) to the range [0.1, 1.0] so that you can actually see
+    # things in the output image.
+    min_alpha = min(raw_alphas)
+    slope = (1.0 - 0.1) / (max(raw_alphas) - min_alpha)
+    for a in raw_alphas:
+        adjusted_alpha = (0.1 + slope * (a - min_alpha))
+        cs.append((r, g, b, adjusted_alpha))
 
     return (xs, ys, cs)
 
-x, y, c = read_points(args['input_file'], "#555555")
+    return (xs, ys, cs, grayscaleValues)
 
-plt.scatter(x, y, c=c)
+x, y, c, gs = read_points(args['input_file'], "#555555")
+
+plt.scatter(x, y, c=c, alpha=gs)
 
 plt.xlim(0, 30)
 plt.ylim(0, 30)
