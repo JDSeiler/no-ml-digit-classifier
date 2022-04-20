@@ -51,7 +51,7 @@ public class ImageTranslationAndRotation extends ImageComparisonBase<Vec3D> {
         double[][] costs = this.computeCostMatrix(this.refImg, shiftedAndRotatedCandidate);
 
 
-        Mapping mapping = new Mapping(n, supplies, demands, costs, 0.01);
+        Mapping mapping = new Mapping(n, supplies, demands, costs, 0.10);
         // Penalize rotation
         // TODO: This rotation penalty needs to be tuned. It doesn't perform well right now.
         double rotationPenalty = Math.abs(theta);

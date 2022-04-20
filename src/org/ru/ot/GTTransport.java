@@ -93,7 +93,7 @@ public class GTTransport {
         bFree = new boolean[n];
         aFree = new boolean[n];
 
-        // Trivially, if the input supply or demand of a vertex is 0, we can say it's free.
+        // Trivially, if the input supply or demand of a vertex is not 0, we can say it's free.
         for(int i = 0; i < n; i++) {
             bFree[i] = supplies[i] != 0;
             aFree[i] = demands[i] != 0;
@@ -112,7 +112,8 @@ public class GTTransport {
         for(int i = 0; i < n; i++) {
             for(int j = 0; j < n; j++) {
                 // The residual capacity of a forward edge: (b, a) is the minimum between the remaining supply at b
-                // Or the unsatisfied demand at a.
+                // Or the unsatisfied demand at a. Recall that the edges can transport as much as you can push through
+                // them!
                 capacityBA[i][j] = Math.min(deficiencyB[i], deficiencyA[j]);
                 // We don't set the capacity of backwards edges because nothing is matched.
             }

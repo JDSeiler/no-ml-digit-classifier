@@ -126,7 +126,7 @@ public class ImgReader {
                 // No fast way I can think of to check the image is gr
                 int grayscaleByte = pixelData[0];
                 double greyscaleValue = 1.0 - (grayscaleByte / 255.0);
-                // TODO: Do a fuzzy check against theshold - floating point issues...
+                // TODO: Do a fuzzy check against threshold - floating point issues...
                 if (greyscaleValue >= threshold) {
                     // I suppose I also want AbstractPixels to be X,Y based
                     pixels.add(new AbstractPixel(c, r, greyscaleValue));
