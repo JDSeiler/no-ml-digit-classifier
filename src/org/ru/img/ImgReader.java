@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -163,8 +164,8 @@ public class ImgReader {
                 // r and c here represent the top left corner of a 2x2 sample.
 
                 int[] kernel = raster.getPixels(c, r, 2, 2, (int[]) null);
-                assert kernel.length == 12 : "Cannot convert via 2x2 kernel: expected 12 total bytes of data in sample";
-                double averageDarkness = (kernel[0] + kernel[3] + kernel[6] + kernel[9]) / 4.0;
+                assert kernel.length == 4 : "Cannot convert via 2x2 kernel: expected 4 total bytes of data in sample";
+                double averageDarkness = (kernel[0] + kernel[1] + kernel[2] + kernel[3]) / 4.0;
                 double averageGrayscale = 1.0 - (averageDarkness / 255.0);
 
                 if (averageGrayscale >= threshold) {
