@@ -27,7 +27,7 @@ public class ThreadableImageClassification implements Callable<ImageClassificati
 
     @Override
     public ImageClassificationResult<Vec5D> call() throws Exception {
-        ImageTRS objectiveFunction = new ImageTRS(this.reference, this.candidate, 0.6, false);
+        ImageTRS objectiveFunction = new ImageTRS(this.reference, this.candidate, 0.1, false);
 
         PSOConfig<Vec5D> config = new PSOConfig<>(
                 15,
