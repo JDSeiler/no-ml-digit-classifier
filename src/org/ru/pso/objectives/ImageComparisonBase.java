@@ -17,7 +17,7 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
     // We add this version of ImageComparisonBase so that we can pre-transform the candidate for a whole set of classifications
     public ImageComparisonBase(BufferedImage referenceImage, List<AbstractPixel> candidateImg, double threshold, boolean useSquaredEuclidean) {
         this.refImg = this.normalizeAbstractPixels(
-                ImgReader.convertToAbstractPixels(referenceImage, threshold)
+                ImgReader.convertToAbstractPixelsViaKernel(referenceImage, threshold)
         );
         this.candidateImg = this.normalizeAbstractPixels(
             candidateImg

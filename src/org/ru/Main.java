@@ -75,8 +75,8 @@ public class Main {
 
                     // Before we do the classification, we randomly shift the candidate to show that we're transformation invariant.
                     // MAKE SURE the threshold here matches the one set in ThreadableImageClassification
-                    // private static final double GRAYSCALE_THRESHOLD = 0.6;
-                    List<AbstractPixel> candidatePixels = ImgReader.convertToAbstractPixels(candidateImage, 0.6);
+                    // This is a bit of a hack NGL
+                    List<AbstractPixel> candidatePixels = ImgReader.convertToAbstractPixelsViaKernel(candidateImage, 0.1);
                     Vec5D randomTransformBounds = new Vec5D(new double[]{
                             5,
                             5,
@@ -85,7 +85,7 @@ public class Main {
                             0.1
                     });
                     List<AbstractPixel> randomlyShiftedPixels = RandomTransformer.randomTRS(randomTransformBounds, candidatePixels);
-                    double[] randomShfit = RandomTransformer.lastShift;
+                    double[] randomShift = RandomTransformer.lastShift;
 
                     // This is the multithreaded part so there should be no issue making lastShift static.
                     ArrayList<ImageClassificationResult<Vec5D>> results = classifyThisCandidate(candidateLabel, randomlyShiftedPixels, heatmaps, pool);
@@ -136,11 +136,11 @@ public class Main {
                             allScores[7],
                             allScores[8],
                             allScores[9],
-                            randomShfit[0],
-                            randomShfit[1],
-                            randomShfit[2],
-                            randomShfit[3],
-                            randomShfit[4]
+                            randomShift[0],
+                            randomShift[1],
+                            randomShift[2],
+                            randomShift[3],
+                            randomShift[4]
                     ));
                 }
             }

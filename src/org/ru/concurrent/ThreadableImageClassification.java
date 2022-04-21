@@ -32,7 +32,7 @@ public class ThreadableImageClassification implements Callable<ImageClassificati
 
     public ThreadableImageClassification(int referenceId, BufferedImage referenceImage, int candidateId, BufferedImage candidateImage) {
         this.reference = referenceImage;
-        this.candidate = ImgReader.convertToAbstractPixels(candidateImage, GRAYSCALE_THRESHOLD);
+        this.candidate = ImgReader.convertToAbstractPixelsViaKernel(candidateImage, GRAYSCALE_THRESHOLD);
 
         this.referenceId = referenceId;
         this.candidateId = candidateId;
@@ -41,7 +41,6 @@ public class ThreadableImageClassification implements Callable<ImageClassificati
     @Override
     public ImageClassificationResult<Vec5D> call() throws Exception {
         ImageTRS objectiveFunction = new ImageTRS(this.reference, this.candidate, GRAYSCALE_THRESHOLD, false);
-
 
         PSOConfig<Vec5D> config = new PSOConfig<>(
                 15,
