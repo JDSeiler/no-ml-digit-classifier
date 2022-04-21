@@ -54,7 +54,7 @@ public class PointCloud {
         for(AbstractPixel p : pixels) {
             if (!p.isDud()) {
                 output.append(
-                        String.format("%.5f, %.5f\n", p.x(), p.y())
+                        String.format("%.5f, %.5f, %.5f\n", p.x(), p.y(), p.grayscaleValue())
                 );
             }
         }

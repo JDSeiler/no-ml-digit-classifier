@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("=== Starting ITEC 498 Classifier : With Random Shifts ===\n");
+        System.out.println("=== Starting ITEC 498 Classifier : 2x2 kernel with random shifts ===\n");
         long start = System.nanoTime();
 
         try {
@@ -61,7 +61,7 @@ public class Main {
 
             // Each folder corresponds to a set of digits, all of which are the same type.
             // 2: Classify a batch of digits
-            for (int candidateLabel = 0; candidateLabel< 10; candidateLabel++) {
+            for (int candidateLabel = 0; candidateLabel < 10; candidateLabel++) {
                 File locationOfImages = new File(String.format("img/mnist-tests-1/%d", candidateLabel));
                 ImgReader candidateReader = new ImgReader(String.format("img/mnist-tests-1/%d", candidateLabel));
                 List<String> testImages = Arrays.stream(Objects.requireNonNull(locationOfImages.listFiles())).map(File::getName).toList();
@@ -153,13 +153,16 @@ public class Main {
     }
 
     public static void testPair() throws IOException {
-        ImgReader candidateReader = new ImgReader("img/mnist-tests-1/3");
+        ImgReader candidateReader = new ImgReader("img/mnist-tests-1/4");
         ImgReader refReader = new ImgReader("img/heatmaps");
 
-        BufferedImage cand = candidateReader.getImage("d3-0884.bmp");
-        BufferedImage ref = refReader.getImage("digit-3-heatmap.bmp");
+        String candidateName = "d4-2212";
+        String referenceName = "digit-4-heatmap";
 
-        List<AbstractPixel> candidatePixels = ImgReader.convertToAbstractPixels(cand, 0.6);
+        BufferedImage cand = candidateReader.getImage(String.format("%s.bmp", candidateName));
+        BufferedImage ref = refReader.getImage(String.format("%s.bmp", referenceName));
+      
+        List<AbstractPixel> candidatePixels = ImgReader.convertToAbstractPixels(cand, 0.10);
         Vec5D randomTransformBounds = new Vec5D(new double[]{
                 5,
                 5,
@@ -168,9 +171,8 @@ public class Main {
                 0.1
         });
         List<AbstractPixel> randomlyShiftedPixels = RandomTransformer.randomTRS(randomTransformBounds, candidatePixels);
-        // Remember that if you scale by a negative number you can flip images through axis.
-        // Just like a 90 degree rotation... Neat!
-        ImageTRS objectiveFunction = new ImageTRS(ref, randomlyShiftedPixels, 0.60, false);
+
+        ImageTRS objectiveFunction = new ImageTRS(ref, randomlyShiftedPixels, 0.10, false);
 
         PSOConfig<Vec5D> config = new PSOConfig<>(
                 15,
@@ -191,7 +193,12 @@ public class Main {
         List<AbstractPixel> finalCandidatePoints = objectiveFunction.getLastSetOfCandidatePoints();
         List<AbstractPixel> referencePoints = objectiveFunction.getLastSetOfReferencePoints();
 
-        PointCloud.drawDigitComparison(referencePoints, "digit-3-heatmap.txt", finalCandidatePoints, "d3-0884-r2.txt");
+        PointCloud.drawDigitComparison(
+                referencePoints,
+                String.format("r-%s.txt",referenceName),
+                finalCandidatePoints,
+                String.format("c-%s.txt", candidateName)
+        );
     }
 
     public static ArrayList<ImageClassificationResult<Vec5D>> classifyThisCandidate(

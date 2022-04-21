@@ -20,7 +20,7 @@ public class ThreadableImageClassification implements Callable<ImageClassificati
     private final int referenceId;
     private final int candidateId;
 
-    private static final double GRAYSCALE_THRESHOLD = 0.6;
+    private static final double GRAYSCALE_THRESHOLD = 0.10;
 
     public ThreadableImageClassification(int referenceId, BufferedImage referenceImage, int candidateId, List<AbstractPixel> candidateImage) {
         this.reference = referenceImage;
@@ -41,6 +41,7 @@ public class ThreadableImageClassification implements Callable<ImageClassificati
     @Override
     public ImageClassificationResult<Vec5D> call() throws Exception {
         ImageTRS objectiveFunction = new ImageTRS(this.reference, this.candidate, GRAYSCALE_THRESHOLD, false);
+
 
         PSOConfig<Vec5D> config = new PSOConfig<>(
                 15,
