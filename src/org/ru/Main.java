@@ -28,7 +28,7 @@ import java.util.concurrent.Future;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("=== Starting PSO ===\n");
+        System.out.println("=== Starting ITEC 498 Classifier : With Random Shifts ===\n");
         long start = System.nanoTime();
 
         try {
