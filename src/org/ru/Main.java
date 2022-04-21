@@ -5,11 +5,8 @@ import org.ru.concurrent.ThreadableImageClassification;
 import org.ru.drawing.PointCloud;
 import org.ru.img.AbstractPixel;
 import org.ru.img.ImgReader;
-import org.ru.pso.OutputWriter;
+import org.ru.pso.*;
 import org.ru.pso.objectives.ImageTRS;
-import org.ru.pso.PSO;
-import org.ru.pso.PSOConfig;
-import org.ru.pso.Solution;
 import org.ru.pso.strategies.Placement;
 import org.ru.pso.strategies.Topology;
 import org.ru.vec.Vec5D;
@@ -75,7 +72,20 @@ public class Main {
                     System.out.printf("Classifying %s%n", candidateImageName);
                     BufferedImage candidateImage = candidateReader.getImage(candidateImageName);
                     // This code uses 10 threads to classify each digit against the same set of heatmap references.
-                    ArrayList<ImageClassificationResult<Vec5D>> results = classifyThisCandidate(candidateLabel, candidateImage, heatmaps, pool);
+
+                    // Before we do the classification, we randomly shift the candidate to show that we're transformation invariant.
+                    // MAKE SURE the threshold here matches the one set in ThreadableImageClassification
+                    // private static final double GRAYSCALE_THRESHOLD = 0.6;
+                    List<AbstractPixel> candidatePixels = ImgReader.convertToAbstractPixels(candidateImage, 0.6);
+                    Vec5D randomTransformBounds = new Vec5D(new double[]{
+                            5,
+                            5,
+                            1.5,
+                            0.5,
+                            0.5
+                    });
+                    List<AbstractPixel> randomlyShiftedPixels = RandomTransformer.randomTRS(randomTransformBounds, candidatePixels);
+                    ArrayList<ImageClassificationResult<Vec5D>> results = classifyThisCandidate(candidateLabel, randomlyShiftedPixels, heatmaps, pool);
 
                     int classifiedAs = -1;
                     double bestFitnessScore = Double.MAX_VALUE;
@@ -135,11 +145,11 @@ public class Main {
     }
 
     public static void testPair() throws IOException {
-        ImgReader candidateReader = new ImgReader("img/mnist-tests-1/0");
+        ImgReader candidateReader = new ImgReader("img/mnist-tests-1/3");
         ImgReader refReader = new ImgReader("img/heatmaps");
 
-        BufferedImage cand = candidateReader.getImage("d0-0027.bmp");
-        BufferedImage ref = refReader.getImage("digit-0-heatmap.bmp");
+        BufferedImage cand = candidateReader.getImage("d3-0541.bmp");
+        BufferedImage ref = refReader.getImage("digit-3-heatmap.bmp");
 
         // Remember that if you scale by a negative number you can flip images through axis.
         // Just like a 90 degree rotation... Neat!
@@ -164,12 +174,12 @@ public class Main {
         List<AbstractPixel> finalCandidatePoints = objectiveFunction.getLastSetOfCandidatePoints();
         List<AbstractPixel> referencePoints = objectiveFunction.getLastSetOfReferencePoints();
 
-        PointCloud.drawDigitComparison(referencePoints, "digit-0-heatmap.txt", finalCandidatePoints, "cand0.txt");
+        PointCloud.drawDigitComparison(referencePoints, "digit-3-heatmap.txt", finalCandidatePoints, "d3-0541.txt");
     }
 
     public static ArrayList<ImageClassificationResult<Vec5D>> classifyThisCandidate(
             int candidateLabel,
-            BufferedImage candidateImage,
+            List<AbstractPixel> candidateImage,
             ArrayList<BufferedImage> references,
             ExecutorService pool
     ) throws InterruptedException, ExecutionException {

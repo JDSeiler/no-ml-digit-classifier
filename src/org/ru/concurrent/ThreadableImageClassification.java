@@ -1,5 +1,7 @@
 package org.ru.concurrent;
 
+import org.ru.img.AbstractPixel;
+import org.ru.img.ImgReader;
 import org.ru.pso.PSO;
 import org.ru.pso.PSOConfig;
 import org.ru.pso.Solution;
@@ -9,15 +11,18 @@ import org.ru.pso.strategies.Topology;
 import org.ru.vec.Vec5D;
 
 import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 public class ThreadableImageClassification implements Callable<ImageClassificationResult<Vec5D>> {
     private final BufferedImage reference;
-    private final BufferedImage candidate;
+    private final List<AbstractPixel> candidate;
     private final int referenceId;
     private final int candidateId;
 
-    public ThreadableImageClassification(int referenceId, BufferedImage referenceImage, int candidateId, BufferedImage candidateImage) {
+    private static final double GRAYSCALE_THRESHOLD = 0.6;
+
+    public ThreadableImageClassification(int referenceId, BufferedImage referenceImage, int candidateId, List<AbstractPixel> candidateImage) {
         this.reference = referenceImage;
         this.candidate = candidateImage;
 
@@ -25,9 +30,17 @@ public class ThreadableImageClassification implements Callable<ImageClassificati
         this.candidateId = candidateId;
     }
 
+    public ThreadableImageClassification(int referenceId, BufferedImage referenceImage, int candidateId, BufferedImage candidateImage) {
+        this.reference = referenceImage;
+        this.candidate = ImgReader.convertToAbstractPixels(candidateImage, GRAYSCALE_THRESHOLD);
+
+        this.referenceId = referenceId;
+        this.candidateId = candidateId;
+    }
+
     @Override
     public ImageClassificationResult<Vec5D> call() throws Exception {
-        ImageTRS objectiveFunction = new ImageTRS(this.reference, this.candidate, 0.6, false);
+        ImageTRS objectiveFunction = new ImageTRS(this.reference, this.candidate, GRAYSCALE_THRESHOLD, false);
 
         PSOConfig<Vec5D> config = new PSOConfig<>(
                 15,

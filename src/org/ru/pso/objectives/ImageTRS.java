@@ -15,6 +15,10 @@ public class ImageTRS extends ImageComparisonBase<Vec5D> {
     private List<AbstractPixel> lastSetOfCandidatePoints = null;
     private List<AbstractPixel> lastSetOfReferencePoints = null;
 
+    // We add this version of ImageTRS so that we can pre-transform the candidate for a whole set of classifications
+    public ImageTRS(BufferedImage referenceImage, List<AbstractPixel> candidateImage, double threshold, boolean useSquaredEuclidean) {
+        super(referenceImage, candidateImage, threshold, useSquaredEuclidean);
+    }
 
     public ImageTRS(BufferedImage referenceImage, BufferedImage candidateImage, double threshold, boolean useSquaredEuclidean) {
         super(referenceImage, candidateImage, threshold, useSquaredEuclidean);
