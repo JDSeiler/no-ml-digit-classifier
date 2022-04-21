@@ -16,10 +16,10 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
 
     public ImageComparisonBase(BufferedImage referenceImage, BufferedImage candidateImage, double threshold, boolean useSquaredEuclidean) {
         this.refImg = this.normalizeAbstractPixels(
-                ImgReader.convertToAbstractPixels(referenceImage, threshold)
+                ImgReader.convertToAbstractPixelsViaKernel(referenceImage, threshold)
         );
         this.candidateImg = this.normalizeAbstractPixels(
-                ImgReader.convertToAbstractPixels(candidateImage, threshold)
+                ImgReader.convertToAbstractPixelsViaKernel(candidateImage, threshold)
         );
 
         this.useSquaredEuclidean = useSquaredEuclidean;

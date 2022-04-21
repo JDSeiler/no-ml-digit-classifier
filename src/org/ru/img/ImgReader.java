@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -130,6 +131,47 @@ public class ImgReader {
                 if (greyscaleValue >= threshold) {
                     // I suppose I also want AbstractPixels to be X,Y based
                     pixels.add(new AbstractPixel(c, r, greyscaleValue));
+                }
+            }
+        }
+        return pixels;
+    }
+
+    /**
+     * Serves an identical function to the normal {@link ImgReader#convertToAbstractPixels} function. With one main
+     * difference. Instead of checking each pixel in the image, this function aggregates 2x2 groups of pixels together
+     * in order to reduce the total number of pixels present in the final list.
+     *
+     * This function checks every other row and every other column, so 1/4 of the pixels total. Each pixel visited
+     * serves as the top left corner of a 2x2 sample.
+     * @param img See: {@link ImgReader#convertToAbstractPixels(BufferedImage img, double threshold)}
+     * @param threshold See: {@link ImgReader#convertToAbstractPixels(BufferedImage img, double threshold)}
+     * @return The abstract pixels that result from the conversion via a 2x2 kernel.
+     */
+    public static List<AbstractPixel> convertToAbstractPixelsViaKernel(BufferedImage img, double threshold) {
+        int w = img.getWidth();
+        int h = img.getHeight();
+        Raster raster = img.getData();
+        int guessNumberOfPixels = (int) Math.floor(w * h / 3.0);
+
+        ArrayList<AbstractPixel> pixels = new ArrayList<>(guessNumberOfPixels);
+        assert w % 2 == 0 : "Cannot convert via 2x2 kernel: expected width of image to be even!";
+        assert h % 2 == 0 : "Cannot convert via 2x2 kernel: expected height of image to be even!";
+
+        // Visit every other row, and every other column in each row.
+        for (int r = 0; r < w; r+=2) {
+            for (int c = 0; c < h; c+=2) {
+                // r and c here represent the top left corner of a 2x2 sample.
+
+                int[] kernel = raster.getPixels(c, r, 2, 2, (int[]) null);
+                assert kernel.length == 4 : "Cannot convert via 2x2 kernel: expected 4 total bytes of data in sample";
+                double averageDarkness = (kernel[0] + kernel[1] + kernel[2] + kernel[3]) / 4.0;
+                double averageGrayscale = 1.0 - (averageDarkness / 255.0);
+
+                if (averageGrayscale >= threshold) {
+                    double averageColumn = (c + c+1) / 2.0;
+                    double averageRow = (r + r+1) / 2.0;
+                    pixels.add(new AbstractPixel(averageColumn, averageRow, averageGrayscale));
                 }
             }
         }
