@@ -5,11 +5,8 @@ import org.ru.concurrent.ThreadableImageClassification;
 import org.ru.drawing.PointCloud;
 import org.ru.img.AbstractPixel;
 import org.ru.img.ImgReader;
-import org.ru.pso.OutputWriter;
+import org.ru.pso.*;
 import org.ru.pso.objectives.ImageTRS;
-import org.ru.pso.PSO;
-import org.ru.pso.PSOConfig;
-import org.ru.pso.Solution;
 import org.ru.pso.strategies.Placement;
 import org.ru.pso.strategies.Topology;
 import org.ru.vec.Vec5D;
@@ -28,7 +25,7 @@ import java.util.concurrent.Future;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("=== Starting ITEC 498 classifier (2x2 kernel) ===\n");
+        System.out.println("=== Starting ITEC 498 Classifier : 2x2 kernel with random shifts ===\n");
         long start = System.nanoTime();
 
         try {
@@ -53,7 +50,7 @@ public class Main {
 
         try {
             comparisons.writeLine("ref_label,cand_label,cand_img_id,fitness,x_shift,y_shift,rotation,x_scale,y_scale,iterations");
-            classifications.writeLine("cand_label,cand_img_id,classified_as,0-fitness,1-fitness,2-fitness,3-fitness,4-fitness,5-fitness,6-fitness,7-fitness,8-fitness,9-fitness");
+            classifications.writeLine("cand_label,cand_img_id,classified_as,0-fitness,1-fitness,2-fitness,3-fitness,4-fitness,5-fitness,6-fitness,7-fitness,8-fitness,9-fitness,i_xShift,i_yShift,i_theta,i_xScale,i_yScale");
 
             // 1: Load the heatmap reference images
             ImgReader referenceImages = new ImgReader("img/heatmaps");
@@ -75,7 +72,23 @@ public class Main {
                     System.out.printf("Classifying %s%n", candidateImageName);
                     BufferedImage candidateImage = candidateReader.getImage(candidateImageName);
                     // This code uses 10 threads to classify each digit against the same set of heatmap references.
-                    ArrayList<ImageClassificationResult<Vec5D>> results = classifyThisCandidate(candidateLabel, candidateImage, heatmaps, pool);
+
+                    // Before we do the classification, we randomly shift the candidate to show that we're transformation invariant.
+                    // MAKE SURE the threshold here matches the one set in ThreadableImageClassification
+                    // private static final double GRAYSCALE_THRESHOLD = 0.6;
+                    List<AbstractPixel> candidatePixels = ImgReader.convertToAbstractPixels(candidateImage, 0.6);
+                    Vec5D randomTransformBounds = new Vec5D(new double[]{
+                            5,
+                            5,
+                            1.5,
+                            0.1,
+                            0.1
+                    });
+                    List<AbstractPixel> randomlyShiftedPixels = RandomTransformer.randomTRS(randomTransformBounds, candidatePixels);
+                    double[] randomShfit = RandomTransformer.lastShift;
+
+                    // This is the multithreaded part so there should be no issue making lastShift static.
+                    ArrayList<ImageClassificationResult<Vec5D>> results = classifyThisCandidate(candidateLabel, randomlyShiftedPixels, heatmaps, pool);
 
                     int classifiedAs = -1;
                     double bestFitnessScore = Double.MAX_VALUE;
@@ -109,7 +122,7 @@ public class Main {
 
                     // 5: Record the classification of this digit.
                     classifications.writeLine(String.format(
-                            "%d,%s,%d,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f",
+                            "%d,%s,%d,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f",
                             candidateLabel,
                             candidateImageName,
                             classifiedAs,
@@ -122,7 +135,12 @@ public class Main {
                             allScores[6],
                             allScores[7],
                             allScores[8],
-                            allScores[9]
+                            allScores[9],
+                            randomShfit[0],
+                            randomShfit[1],
+                            randomShfit[2],
+                            randomShfit[3],
+                            randomShfit[4]
                     ));
                 }
             }
@@ -143,8 +161,18 @@ public class Main {
 
         BufferedImage cand = candidateReader.getImage(String.format("%s.bmp", candidateName));
         BufferedImage ref = refReader.getImage(String.format("%s.bmp", referenceName));
+      
+        List<AbstractPixel> candidatePixels = ImgReader.convertToAbstractPixels(cand, 0.10);
+        Vec5D randomTransformBounds = new Vec5D(new double[]{
+                5,
+                5,
+                1.5,
+                0.1,
+                0.1
+        });
+        List<AbstractPixel> randomlyShiftedPixels = RandomTransformer.randomTRS(randomTransformBounds, candidatePixels);
 
-        ImageTRS objectiveFunction = new ImageTRS(ref, cand, 0.10, false);
+        ImageTRS objectiveFunction = new ImageTRS(ref, randomlyShiftedPixels, 0.10, false);
 
         PSOConfig<Vec5D> config = new PSOConfig<>(
                 15,
@@ -175,7 +203,7 @@ public class Main {
 
     public static ArrayList<ImageClassificationResult<Vec5D>> classifyThisCandidate(
             int candidateLabel,
-            BufferedImage candidateImage,
+            List<AbstractPixel> candidateImage,
             ArrayList<BufferedImage> references,
             ExecutorService pool
     ) throws InterruptedException, ExecutionException {

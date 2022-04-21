@@ -14,6 +14,27 @@ abstract public class ImageComparisonBase<V extends FixedVector> {
     protected final List<AbstractPixel> candidateImg;
     protected boolean useSquaredEuclidean = false;
 
+    // We add this version of ImageComparisonBase so that we can pre-transform the candidate for a whole set of classifications
+    public ImageComparisonBase(BufferedImage referenceImage, List<AbstractPixel> candidateImg, double threshold, boolean useSquaredEuclidean) {
+        this.refImg = this.normalizeAbstractPixels(
+                ImgReader.convertToAbstractPixels(referenceImage, threshold)
+        );
+        this.candidateImg = this.normalizeAbstractPixels(
+            candidateImg
+        );
+
+        this.useSquaredEuclidean = useSquaredEuclidean;
+
+        int largestImage = Integer.max(this.refImg.size(), this.candidateImg.size());
+        this.balanceNumberOfPixels(this.refImg, largestImage);
+        this.balanceNumberOfPixels(this.candidateImg, largestImage);
+
+        if (this.refImg.size() != this.candidateImg.size()) {
+            System.err.printf("Ref Img: %d, Candidate Img: %d", this.refImg.size(), this.candidateImg.size());
+            throw new RuntimeException("Reference image and candidate image must have the same number of abstract pixels in them!");
+        }
+    }
+
     public ImageComparisonBase(BufferedImage referenceImage, BufferedImage candidateImage, double threshold, boolean useSquaredEuclidean) {
         this.refImg = this.normalizeAbstractPixels(
                 ImgReader.convertToAbstractPixelsViaKernel(referenceImage, threshold)
