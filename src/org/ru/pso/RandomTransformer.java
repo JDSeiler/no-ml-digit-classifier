@@ -32,10 +32,10 @@ public class RandomTransformer {
         List<AbstractPixel> shiftedPixels = translateAllPixels(shift, untransformedImage);
 
         Vec2D centerOfMass = findCenterOfMass(shiftedPixels);
-        List<AbstractPixel> shiftedAndScaledCandidate = scaleAllPixels(xScale, yScale, centerOfMass, shiftedPixels);
+//        List<AbstractPixel> shiftedAndScaledCandidate = scaleAllPixels(xScale, yScale, centerOfMass, shiftedPixels);
 
-        Vec2D centerOfRotation = findCenterOfMass(shiftedAndScaledCandidate);
-        return rotateAllPixelsAround(centerOfRotation, theta, shiftedAndScaledCandidate);
+        Vec2D centerOfRotation = findCenterOfMass(shiftedPixels);
+        return rotateAllPixelsAround(centerOfRotation, theta, shiftedPixels);
     }
 
     /*

@@ -29,7 +29,7 @@ public class Main {
         long start = System.nanoTime();
 
         try {
-            runFullTests();
+            testPair();
         } catch(Exception e) {
             System.out.println("Something went wrong!");
             System.err.println(e);
@@ -151,9 +151,18 @@ public class Main {
         BufferedImage cand = candidateReader.getImage("d3-0541.bmp");
         BufferedImage ref = refReader.getImage("digit-3-heatmap.bmp");
 
+        List<AbstractPixel> candidatePixels = ImgReader.convertToAbstractPixels(cand, 0.6);
+        Vec5D randomTransformBounds = new Vec5D(new double[]{
+                5,
+                5,
+                1.5,
+                0.5,
+                0.5
+        });
+        List<AbstractPixel> randomlyShiftedPixels = RandomTransformer.randomTRS(randomTransformBounds, candidatePixels);
         // Remember that if you scale by a negative number you can flip images through axis.
         // Just like a 90 degree rotation... Neat!
-        ImageTRS objectiveFunction = new ImageTRS(ref, cand, 0.60, false);
+        ImageTRS objectiveFunction = new ImageTRS(ref, randomlyShiftedPixels, 0.60, false);
 
         PSOConfig<Vec5D> config = new PSOConfig<>(
                 15,
@@ -174,7 +183,7 @@ public class Main {
         List<AbstractPixel> finalCandidatePoints = objectiveFunction.getLastSetOfCandidatePoints();
         List<AbstractPixel> referencePoints = objectiveFunction.getLastSetOfReferencePoints();
 
-        PointCloud.drawDigitComparison(referencePoints, "digit-3-heatmap.txt", finalCandidatePoints, "d3-0541.txt");
+        PointCloud.drawDigitComparison(referencePoints, "digit-3-heatmap.txt", finalCandidatePoints, "d3-0541-r.txt");
     }
 
     public static ArrayList<ImageClassificationResult<Vec5D>> classifyThisCandidate(
