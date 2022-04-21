@@ -8,11 +8,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class RandomTransformer {
+    // Ew this is gross
+    public static double[] lastShift = null;
+
     /**
      * Random Translation, Rotation, and Scaling
      * @param bounds 5D vector with strictly positive components representing the bounds of each transformation.
      *               [xShift, yShift, theta, xScale, yScale]
      *               For each bound component `b`, a transformation value is generated in the range [-b, b]
+     *               The one exception is scaling. A number (call it Z) in the range [-b, b] is generated, but the scaling
+     *               factor is actually 1+Z. So passing in a bound of say: 0.2, means that the candidate is going
+     *               to be either scaled up or shrunk by 20% in the worst case.
      * @param untransformedImage the unmodified image
      * @return The image after applying random translation, rotation, and scaling
      */
@@ -21,8 +27,17 @@ public class RandomTransformer {
         double xShift = generateInRange(-b[0], b[0]);
         double yShift = generateInRange(-b[1], b[1]);
         double theta  = generateInRange(-b[2], b[2]);
-        double xScale = generateInRange(-b[3], b[3]);
-        double yScale = generateInRange(-b[4], b[4]);
+        double xScale = 1 + generateInRange(-b[3], b[3]);
+        double yScale = 1 + generateInRange(-b[4], b[4]);
+
+        double[] randomShiftVec = new double[]{
+                xShift,
+                yShift,
+                theta,
+                xScale,
+                yScale
+        };
+        RandomTransformer.lastShift = randomShiftVec;
 
         Vec2D shift = new Vec2D(new double[] {
                 xShift,
@@ -32,10 +47,10 @@ public class RandomTransformer {
         List<AbstractPixel> shiftedPixels = translateAllPixels(shift, untransformedImage);
 
         Vec2D centerOfMass = findCenterOfMass(shiftedPixels);
-//        List<AbstractPixel> shiftedAndScaledCandidate = scaleAllPixels(xScale, yScale, centerOfMass, shiftedPixels);
+        List<AbstractPixel> shiftedAndScaledCandidate = scaleAllPixels(xScale, yScale, centerOfMass, shiftedPixels);
 
-        Vec2D centerOfRotation = findCenterOfMass(shiftedPixels);
-        return rotateAllPixelsAround(centerOfRotation, theta, shiftedPixels);
+        Vec2D centerOfRotation = findCenterOfMass(shiftedAndScaledCandidate);
+        return rotateAllPixelsAround(centerOfRotation, theta, shiftedAndScaledCandidate);
     }
 
     /*

@@ -29,7 +29,7 @@ public class Main {
         long start = System.nanoTime();
 
         try {
-            testPair();
+            runFullTests();
         } catch(Exception e) {
             System.out.println("Something went wrong!");
             System.err.println(e);
@@ -50,7 +50,7 @@ public class Main {
 
         try {
             comparisons.writeLine("ref_label,cand_label,cand_img_id,fitness,x_shift,y_shift,rotation,x_scale,y_scale,iterations");
-            classifications.writeLine("cand_label,cand_img_id,classified_as,0-fitness,1-fitness,2-fitness,3-fitness,4-fitness,5-fitness,6-fitness,7-fitness,8-fitness,9-fitness");
+            classifications.writeLine("cand_label,cand_img_id,classified_as,0-fitness,1-fitness,2-fitness,3-fitness,4-fitness,5-fitness,6-fitness,7-fitness,8-fitness,9-fitness,i_xShift,i_yShift,i_theta,i_xScale,i_yScale");
 
             // 1: Load the heatmap reference images
             ImgReader referenceImages = new ImgReader("img/heatmaps");
@@ -81,10 +81,13 @@ public class Main {
                             5,
                             5,
                             1.5,
-                            0.5,
-                            0.5
+                            0.1,
+                            0.1
                     });
                     List<AbstractPixel> randomlyShiftedPixels = RandomTransformer.randomTRS(randomTransformBounds, candidatePixels);
+                    double[] randomShfit = RandomTransformer.lastShift;
+
+                    // This is the multithreaded part so there should be no issue making lastShift static.
                     ArrayList<ImageClassificationResult<Vec5D>> results = classifyThisCandidate(candidateLabel, randomlyShiftedPixels, heatmaps, pool);
 
                     int classifiedAs = -1;
@@ -119,7 +122,7 @@ public class Main {
 
                     // 5: Record the classification of this digit.
                     classifications.writeLine(String.format(
-                            "%d,%s,%d,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f",
+                            "%d,%s,%d,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f",
                             candidateLabel,
                             candidateImageName,
                             classifiedAs,
@@ -132,7 +135,12 @@ public class Main {
                             allScores[6],
                             allScores[7],
                             allScores[8],
-                            allScores[9]
+                            allScores[9],
+                            randomShfit[0],
+                            randomShfit[1],
+                            randomShfit[2],
+                            randomShfit[3],
+                            randomShfit[4]
                     ));
                 }
             }
@@ -148,7 +156,7 @@ public class Main {
         ImgReader candidateReader = new ImgReader("img/mnist-tests-1/3");
         ImgReader refReader = new ImgReader("img/heatmaps");
 
-        BufferedImage cand = candidateReader.getImage("d3-0541.bmp");
+        BufferedImage cand = candidateReader.getImage("d3-0884.bmp");
         BufferedImage ref = refReader.getImage("digit-3-heatmap.bmp");
 
         List<AbstractPixel> candidatePixels = ImgReader.convertToAbstractPixels(cand, 0.6);
@@ -156,8 +164,8 @@ public class Main {
                 5,
                 5,
                 1.5,
-                0.5,
-                0.5
+                0.1,
+                0.1
         });
         List<AbstractPixel> randomlyShiftedPixels = RandomTransformer.randomTRS(randomTransformBounds, candidatePixels);
         // Remember that if you scale by a negative number you can flip images through axis.
@@ -183,7 +191,7 @@ public class Main {
         List<AbstractPixel> finalCandidatePoints = objectiveFunction.getLastSetOfCandidatePoints();
         List<AbstractPixel> referencePoints = objectiveFunction.getLastSetOfReferencePoints();
 
-        PointCloud.drawDigitComparison(referencePoints, "digit-3-heatmap.txt", finalCandidatePoints, "d3-0541-r.txt");
+        PointCloud.drawDigitComparison(referencePoints, "digit-3-heatmap.txt", finalCandidatePoints, "d3-0884-r2.txt");
     }
 
     public static ArrayList<ImageClassificationResult<Vec5D>> classifyThisCandidate(
