@@ -4,6 +4,8 @@ package org.ru.ot;
  * Sourced from: https://github.com/nathaniellahn/CombinatorialOptimalTransport/blob/master/GabowTarjanJavaCode/GTTransport/src/optimaltransport/Mapping.java
  * with permission from one the authors (Dr. Nathaniel Lahn - https://github.com/nathaniellahn) of the following paper:
  * https://arxiv.org/abs/1905.11830
+ *
+ * Copyright 2019, Nathaniel Lahn, All rights reserved.
  */
 
 public class Mapping {

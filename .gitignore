@@ -11,5 +11,7 @@
 *.jpeg
 *.png
 
+!/references/*.bmp
+
 /temp/*
 !/temp/.gitkeep
